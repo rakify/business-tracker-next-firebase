@@ -1,15 +1,16 @@
-import React from 'react'
-import Footer from './Footer'
-import Navbar from './Navbar'
+import { Container } from "@mui/material";
+import React from "react";
+import Footer from "./footer";
+import Navbar from "./navbar";
 
-const Layout = ({children}) => {
+const Layout = ({ children }) => {
   return (
-    <>
-    <Navbar />
-    {children}
-    <Footer />
-    </>
-  )
-}
+    <Container>
+      <Navbar />
+      {children}
+      <Footer />
+    </Container>
+  );
+};
 
-export default Layout
+export default Layout;

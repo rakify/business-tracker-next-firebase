@@ -7,9 +7,8 @@ import Login from "./login";
 
 export default function Home() {
   const user = useSelector((state) => state.user.currentUser);
-  console.log(user);
   return (
-    <div className={styles.container}>
+    <>
       <Head>
         <title>Business Tracker</title>
         <meta
@@ -19,6 +18,6 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       {user ? <EntryForm /> : <Login />}
-    </div>
+    </>
   );
 }

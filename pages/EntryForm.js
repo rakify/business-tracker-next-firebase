@@ -1,10 +1,15 @@
-import { Container, Typography, Stack, TextField } from "@mui/material";
+import { Container, Typography, Stack, TextField, Button } from "@mui/material";
 import React, { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { getProductData } from "../redux/apiCalls";
 const EntryForm = () => {
+  const dispatch = useDispatch();
   const user = useSelector((state) => state.user.currentUser);
-  const products =
-    useSelector((state) => state.user.currentUser?.products) || 0;
+  const products = useSelector((state) => state.product.products);
+
+  useEffect(() => {
+    getProductData(dispatch, user.uid);
+  }, [user.uid]);
 
   const weekday = new Date().toLocaleString("en-us", {
     //this is so we can let only todays entry the access to remove
@@ -17,12 +22,12 @@ const EntryForm = () => {
     user: user.username,
     entryNo: 1, //if no entries set 1 or set first entries(sorted so) entryNo+1
     date: date,
-    costForWithCommition: 0.0, // todays total cost for commision based product
-    commitionPercentage: 0.0, // perchantage of discount
-    commitionValue: 0.0, // discount ammount
-    costAfterCommition: 0.0,
-    costForWithoutCommition: 0.0, // todays total cost for without commision based product
-    finalCost: 0.0, // costAfterCommition+costWithoutCommition
+    costForWithCommission: 0.0, // todays total cost for commission based product
+    commissionPercentage: 0.0, // perchantage of discount
+    commissionValue: 0.0, // discount ammount
+    costAfterCommission: 0.0,
+    costForWithoutCommission: 0.0, // todays total cost for without commission based product
+    finalCost: 0.0, // costAfterCommission+costWithoutCommission
     previousReserve: 0.0, // previous date final reserve
     finalCost2: 0.0, //abs(previousReserve-finalCost)
     reserve: 0.0, // todays reserve
@@ -34,9 +39,8 @@ const EntryForm = () => {
   const handleSelectChange = (name, value) => {
     setInputs((prev) => ({ ...prev, [name]: value }));
   };
-  console.log(date);
 
-  //handle number values - commisionPerchantage, previousReserve, reserve
+  //handle number values - commissionPerchantage, previousReserve, reserve
   const handleChange = (name, value) => {
     //if client forgets to put any number greater then 0 or just empty string set it auto as 0
     (isNaN(value) || value === "") &&
@@ -57,14 +61,14 @@ const EntryForm = () => {
   for (let i = 0; i < products.length; i++) {
     initialQuantity[products[i]?.id] = 0;
   }
-  // for product with commition
+  // for product with commission
   const [quantity, setQuantity] = useState({ ...initialQuantity });
   const [subtotal, setSubtotal] = useState({ ...initialQuantity });
-  // for product without commision
+  // for product without commission
   const [quantity2, setQuantity2] = useState({ ...initialQuantity });
   const [subtotal2, setSubtotal2] = useState({ ...initialQuantity });
 
-  // Handle change in quantity and also update subtotal for commision based product
+  // Handle change in quantity and also update subtotal for commission based product
   const handleQuantity = (valuePassed, price, id) => {
     let value = 0;
     if (valuePassed !== "" && !isNaN(valuePassed)) value = valuePassed;
@@ -77,7 +81,7 @@ const EntryForm = () => {
     });
   };
 
-  // Handle change in quantity and also update subtotal for without commision based product
+  // Handle change in quantity and also update subtotal for without commission based product
   const handleQuantity2 = (valuePassed, price, id) => {
     let value = 0;
     if (valuePassed !== "" && !isNaN(valuePassed)) value = valuePassed;
@@ -90,16 +94,16 @@ const EntryForm = () => {
     });
   };
 
-  //with change in subtotal, update total cost value for commision based product
+  //with change in subtotal, update total cost value for commission based product
   useEffect(() => {
     let total = 0.0;
     for (let item in subtotal) {
       total += parseFloat(subtotal[item]);
     }
-    setInputs((prev) => ({ ...prev, costForWithCommition: total.toFixed(2) }));
+    setInputs((prev) => ({ ...prev, costForWithCommission: total.toFixed(2) }));
   }, [subtotal]);
 
-  //with change in subtotal2, update total cost value for without commision product
+  //with change in subtotal2, update total cost value for without commission product
   useEffect(() => {
     let total = 0;
     for (let item in subtotal2) {
@@ -107,35 +111,35 @@ const EntryForm = () => {
     }
     setInputs((prev) => ({
       ...prev,
-      costForWithoutCommition: total.toFixed(2),
+      costForWithoutCommission: total.toFixed(2),
     }));
   }, [subtotal2]);
 
-  //with change in commition, update commition Value and cost after commition
+  //with change in commission, update commission Value and cost after commission
   useEffect(() => {
-    let costAfterCommition = 0.0;
-    let commitionValue = 0.0;
-    if (inputs.commitionPercentage !== 0)
-      commitionValue =
-        (inputs.commitionPercentage / 100.0) * inputs.costForWithCommition;
-    costAfterCommition = inputs.costForWithCommition - commitionValue;
+    let costAfterCommission = 0.0;
+    let commissionValue = 0.0;
+    if (inputs.commissionPercentage !== 0)
+      commissionValue =
+        (inputs.commissionPercentage / 100.0) * inputs.costForWithCommission;
+    costAfterCommission = inputs.costForWithCommission - commissionValue;
     setInputs((prev) => ({
       ...prev,
-      commitionValue: commitionValue.toFixed(2),
+      commissionValue: commissionValue.toFixed(2),
     }));
     setInputs((prev) => ({
       ...prev,
-      costAfterCommition: costAfterCommition.toFixed(2),
+      costAfterCommission: costAfterCommission.toFixed(2),
     }));
-  }, [inputs.commitionPercentage, inputs.costForWithCommition]);
+  }, [inputs.commissionPercentage, inputs.costForWithCommission]);
 
-  //with change in costAfterCommition, costForWithoutCommition, update final cost
+  //with change in costAfterCommission, costForWithoutCommission, update final cost
   useEffect(() => {
     let finalCost =
-      parseFloat(inputs.costAfterCommition) +
-      parseFloat(inputs.costForWithoutCommition);
+      parseFloat(inputs.costAfterCommission) +
+      parseFloat(inputs.costForWithoutCommission);
     setInputs((prev) => ({ ...prev, finalCost: finalCost.toFixed(2) }));
-  }, [inputs.costAfterCommition, inputs.costForWithoutCommition]);
+  }, [inputs.costAfterCommission, inputs.costForWithoutCommission]);
 
   //with change in finalCost, previous reserve and todays reserve, update final reserve, finalCost2
   useEffect(() => {
@@ -145,11 +149,13 @@ const EntryForm = () => {
     setInputs((prev) => ({ ...prev, finalCost2: finalCost2.toFixed(2) }));
   }, [inputs.finalCost, inputs.previousReserve, inputs.reserve]);
 
-  let productWithoutCommition = [];
+  let productWithoutCommission = [];
   if (products)
-    productWithoutCommition = products?.filter(
-      (item) => item?.acceptCommition !== true
+    productWithoutCommission = products?.filter(
+      (item) => item?.acceptCommission !== true
     );
+
+  const handleSubmit = () => {};
 
   return (
     <>
@@ -195,9 +201,6 @@ const EntryForm = () => {
                 <Typography sx={{ fontWeight: "bold" }}>
                   Day: {weekday}
                 </Typography>
-                <Typography sx={{ fontWeight: "bold" }}>
-                  Time: {dateArray[1]}
-                </Typography>
               </Stack>
               <Stack
                 sx={{
@@ -220,13 +223,25 @@ const EntryForm = () => {
               </Stack>
             </Stack>
 
-            <Stack direction="row" justifyContent="space-evenly">
-              {/* There exists product with commision */}
+            <Stack
+              direction="row"
+              justifyContent="space-between"
+              sx={{ flexDirection: { xs: "column", md: "row" }, gap: 5 }}
+            >
+              {/* There exists product with commission */}
               <Stack>
-                {productWithoutCommition.length !== products.length && (
+                {productWithoutCommission.length !== products.length && (
                   <>
-                    <Typography variant="overline">
-                      Products That Accept Commision
+                    <Typography
+                      variant="overline"
+                      sx={{
+                        border: "1px solid #2263a5",
+                        textAlign: "center",
+                        fontWeight: "bold",
+                        fontSize: 10,
+                      }}
+                    >
+                      Products That Accept Commission
                     </Typography>
                     <Stack>
                       <Stack
@@ -324,7 +339,7 @@ const EntryForm = () => {
                     </Stack>
 
                     {products
-                      .filter((item) => item?.acceptCommition === true)
+                      .filter((item) => item?.acceptCommission === true)
                       .map((item) => (
                         <Stack key={item?.id}>
                           <Stack
@@ -408,7 +423,7 @@ const EntryForm = () => {
                         </Stack>
                       ))}
 
-                    {/* Calculations Part For Product that accepts commision */}
+                    {/* Calculations Part For Product that accepts commission */}
                     <>
                       <Stack
                         sx={{
@@ -444,7 +459,7 @@ const EntryForm = () => {
                               textAlign: "center",
                             }}
                           >
-                            মোট
+                            Total
                           </Typography>
                         </Stack>
                         <Typography
@@ -466,7 +481,7 @@ const EntryForm = () => {
                           }}
                         >
                           <Typography>
-                            {inputs.costForWithCommition}৳
+                            {inputs.costForWithCommission}৳
                           </Typography>
                         </Stack>
                       </Stack>
@@ -505,7 +520,7 @@ const EntryForm = () => {
                               textAlign: "center",
                             }}
                           >
-                            কমিশন (-)
+                            Commission (-)
                           </Typography>
                         </Stack>
                         <Stack
@@ -526,7 +541,7 @@ const EntryForm = () => {
                             placeholder="0"
                             onChange={(e) =>
                               handleChange(
-                                "commitionPercentage",
+                                "commissionPercentage",
                                 e.target.value
                               )
                             }
@@ -541,7 +556,7 @@ const EntryForm = () => {
                             textAlign: "center",
                           }}
                         >
-                          <Typography>{inputs.commitionValue}৳</Typography>
+                          <Typography>{inputs.commissionValue}৳</Typography>
                         </Stack>
                       </Stack>
                       <Stack
@@ -589,19 +604,27 @@ const EntryForm = () => {
                             textAlign: "center",
                           }}
                         >
-                          <Typography>{inputs.costAfterCommition}৳</Typography>
+                          <Typography>{inputs.costAfterCommission}৳</Typography>
                         </Stack>
                       </Stack>
                     </>
                   </>
                 )}
               </Stack>
-              {/* Product That Doesnt Accept Commision */}
+              {/* Product That Dont Accept Commission */}
               <Stack>
-                {productWithoutCommition.length !== 0 && (
+                {productWithoutCommission.length !== 0 && (
                   <>
-                    <Typography variant="overline">
-                      Products That Doesn't Accept Commision
+                    <Typography
+                      variant="overline"
+                      sx={{
+                        border: "1px solid #2263a5",
+                        textAlign: "center",
+                        fontWeight: "bold",
+                        fontSize: 10,
+                      }}
+                    >
+                      Products That Don't Accept Commission
                     </Typography>
 
                     <Stack
@@ -697,9 +720,9 @@ const EntryForm = () => {
                       </Stack>
                     </Stack>
 
-                    {/* Product list that does not accept Commition */}
+                    {/* Product list that does not accept Commission */}
                     {products
-                      .filter((item) => item?.acceptCommition !== true)
+                      .filter((item) => item?.acceptCommission !== true)
                       .map((item) => (
                         <Stack key={item?.id}>
                           <Stack
@@ -789,7 +812,7 @@ const EntryForm = () => {
                         </Stack>
                       ))}
 
-                    {/* Result of Product that doesnt accept commision */}
+                    {/* Result of Product that doesnt accept commission */}
                     <Stack
                       sx={{
                         flexDirection: "row",
@@ -836,331 +859,338 @@ const EntryForm = () => {
                         }}
                       >
                         <Typography>
-                          {inputs.costForWithoutCommition}৳
+                          {inputs.costForWithoutCommission}৳
                         </Typography>
                       </Stack>
                     </Stack>
                   </>
                 )}
               </Stack>
+
+              {/* FInal Calculations Part */}
+              <Stack
+                alignItems="center"
+                sx={{
+                  backgroundColor: "#f1f8ff",
+                }}
+              >
+                <Typography
+                  variant="overline"
+                  sx={{
+                    borderBottom: "1px solid #2263a5",
+                    textAlign: "center",
+                    fontWeight: "bold",
+                  }}
+                >
+                  Final Result
+                </Typography>
+
+                <Stack direction="row" sx={{ backgroundColor: "" }}>
+                  <Typography
+                    sx={{
+                      width: 70,
+                      height: 50,
+                      justifyContent: "space-evenly",
+                      alignItems: "center",
+                      textAlign: "center",
+                    }}
+                  ></Typography>
+                  <Stack
+                    sx={{
+                      width: 160,
+                      height: 50,
+                      justifyContent: "space-evenly",
+                      alignItems: "center",
+                      textAlign: "center",
+                    }}
+                  >
+                    <Typography
+                      sx={{
+                        width: "100%",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textAlign: "center",
+                      }}
+                    >
+                      {inputs.costForWithoutCommission} +{" "}
+                      {inputs.costAfterCommission}
+                    </Typography>
+                  </Stack>
+                  <Typography
+                    sx={{
+                      width: 70,
+                      height: 50,
+                      justifyContent: "space-evenly",
+                      alignItems: "center",
+                      textAlign: "center",
+                    }}
+                  ></Typography>
+                  <Stack
+                    sx={{
+                      width: 70,
+                      height: 50,
+                      justifyContent: "space-evenly",
+                      alignItems: "center",
+                      textAlign: "center",
+                    }}
+                  >
+                    <Typography>{inputs.finalCost}৳</Typography>
+                  </Stack>
+                </Stack>
+
+                <Stack
+                  sx={{
+                    flexDirection: "row",
+                    borderBottomWidth: 1,
+                    borderColor: "#7393b3",
+                  }}
+                >
+                  <Stack
+                    sx={{
+                      width: 70,
+                      height: 50,
+                      justifyContent: "space-evenly",
+                      alignItems: "center",
+                      textAlign: "center",
+                    }}
+                  ></Stack>
+                  <Stack
+                    sx={{
+                      width: 160,
+                      height: 50,
+                      justifyContent: "space-evenly",
+                      alignItems: "center",
+                      textAlign: "center",
+                    }}
+                  >
+                    <Typography
+                      sx={{
+                        width: "100%",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textAlign: "center",
+                      }}
+                    >
+                      Previous Due
+                    </Typography>
+                  </Stack>
+                  <Stack
+                    sx={{
+                      width: 70,
+                      height: 50,
+                      backgroundColor: "#f1f8ff",
+                    }}
+                  >
+                    <TextField
+                      fullWidth
+                      size="small"
+                      margin="dense"
+                      sx={{
+                        backgroundColor: "#dddfff",
+                      }}
+                      f
+                      placeholder="0"
+                      onChange={(e) =>
+                        handleChange("previousReserve", e.target.value)
+                      }
+                    />
+                  </Stack>
+                  <Stack
+                    sx={{
+                      width: 70,
+                      height: 50,
+                      justifyContent: "space-evenly",
+                      alignItems: "center",
+                      textAlign: "center",
+                    }}
+                  >
+                    <Typography>{inputs.previousReserve}৳</Typography>
+                  </Stack>
+                </Stack>
+
+                <Stack
+                  sx={{
+                    flexDirection: "row",
+                    borderBottomWidth: 1,
+                    borderColor: "#7393b3",
+                  }}
+                >
+                  <Stack
+                    sx={{
+                      width: 70,
+                      height: 50,
+                      justifyContent: "space-evenly",
+                      alignItems: "center",
+                      textAlign: "center",
+                    }}
+                  ></Stack>
+                  <Stack
+                    sx={{
+                      width: 160,
+                      height: 50,
+                      justifyContent: "space-evenly",
+                      alignItems: "center",
+                      textAlign: "center",
+                    }}
+                  ></Stack>
+                  <Stack
+                    sx={{
+                      width: 70,
+                      height: 50,
+                      justifyContent: "space-evenly",
+                      alignItems: "center",
+                      textAlign: "center",
+                    }}
+                  ></Stack>
+                  <Stack
+                    sx={{
+                      width: 70,
+                      height: 50,
+                      justifyContent: "space-evenly",
+                      alignItems: "center",
+                      textAlign: "center",
+                    }}
+                  >
+                    <Typography>{inputs.finalCost2}৳</Typography>
+                  </Stack>
+                </Stack>
+
+                <Stack
+                  sx={{
+                    flexDirection: "row",
+                    borderBottomWidth: 1,
+                    borderColor: "#7393b3",
+                  }}
+                >
+                  <Stack
+                    sx={{
+                      width: 70,
+                      height: 50,
+                      justifyContent: "space-evenly",
+                      alignItems: "center",
+                      textAlign: "center",
+                    }}
+                  ></Stack>
+                  <Stack
+                    sx={{
+                      width: 160,
+                      height: 50,
+                      justifyContent: "space-evenly",
+                      alignItems: "center",
+                      textAlign: "center",
+                    }}
+                  >
+                    <Typography
+                      sx={{
+                        width: "100%",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textAlign: "center",
+                      }}
+                    >
+                      Reserve Today
+                    </Typography>
+                  </Stack>
+                  <Stack
+                    sx={{
+                      width: 70,
+                      height: 50,
+                      backgroundColor: "#f1f8ff",
+                    }}
+                  >
+                    <TextField
+                      fullWidth
+                      size="small"
+                      margin="dense"
+                      sx={{
+                        backgroundColor: "#dddfff",
+                      }}
+                      f
+                      placeholder="0"
+                      onChange={(e) => handleChange("reserve", e.target.value)}
+                    />
+                  </Stack>
+                  <Stack
+                    sx={{
+                      width: 70,
+                      height: 50,
+                      justifyContent: "space-evenly",
+                      alignItems: "center",
+                      textAlign: "center",
+                    }}
+                  >
+                    <Typography>{inputs.reserve}৳</Typography>
+                  </Stack>
+                </Stack>
+
+                <Stack
+                  sx={{
+                    flexDirection: "row",
+                    borderBottomWidth: 1,
+                    borderColor: "#7393b3",
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      width: 70,
+                      height: 50,
+                      justifyContent: "space-evenly",
+                      alignItems: "center",
+                      textAlign: "center",
+                    }}
+                  ></Typography>
+                  <Stack
+                    sx={{
+                      width: 160,
+                      height: 50,
+                      justifyContent: "space-evenly",
+                      alignItems: "center",
+                      textAlign: "center",
+                    }}
+                  >
+                    <Typography
+                      sx={{
+                        width: "100%",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textAlign: "center",
+                      }}
+                    >
+                      Total Due
+                    </Typography>
+                  </Stack>
+                  <Typography
+                    sx={{
+                      width: 70,
+                      height: 50,
+                      justifyContent: "space-evenly",
+                      alignItems: "center",
+                      textAlign: "center",
+                    }}
+                  ></Typography>
+                  <Stack
+                    sx={{
+                      width: 70,
+                      height: 50,
+                      justifyContent: "space-evenly",
+                      alignItems: "center",
+                      textAlign: "center",
+                    }}
+                  >
+                    <Typography>{inputs.finalReserve}৳</Typography>
+                  </Stack>
+                </Stack>
+                <Button fullWidth variant="contained">
+                  Confirm Order
+                </Button>
+              </Stack>
             </Stack>
           </>
         )}
-
-        {/* FInal Calculations Part */}
-        <Stack alignItems="center" sx={{ border: "1px solid #2263a5" }}>
-          <Typography
-            variant="overline"
-            sx={{ backgroundColor: "#2263a5", color: "white" }}
-          >
-            Final Result
-          </Typography>
-
-          <Stack
-            sx={{
-              flexDirection: "row",
-              borderBottomWidth: 1,
-              borderColor: "#7393b3",
-            }}
-          >
-            <Typography
-              sx={{
-                width: 70,
-                height: 50,
-                justifyContent: "space-evenly",
-                alignItems: "center",
-                textAlign: "center",
-              }}
-            ></Typography>
-            <Stack
-              sx={{
-                width: 160,
-                height: 50,
-                justifyContent: "space-evenly",
-                alignItems: "center",
-                textAlign: "center",
-              }}
-            >
-              <Typography
-                sx={{
-                  width: "100%",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textAlign: "center",
-                }}
-              >
-                {inputs.costForWithoutCommition} + {inputs.costAfterCommition}
-              </Typography>
-            </Stack>
-            <Typography
-              sx={{
-                width: 70,
-                height: 50,
-                justifyContent: "space-evenly",
-                alignItems: "center",
-                textAlign: "center",
-              }}
-            ></Typography>
-            <Stack
-              sx={{
-                width: 70,
-                height: 50,
-                justifyContent: "space-evenly",
-                alignItems: "center",
-                textAlign: "center",
-              }}
-            >
-              <Typography>{inputs.finalCost}৳</Typography>
-            </Stack>
-          </Stack>
-
-          <Stack
-            sx={{
-              flexDirection: "row",
-              borderBottomWidth: 1,
-              borderColor: "#7393b3",
-            }}
-          >
-            <Stack
-              sx={{
-                width: 70,
-                height: 50,
-                justifyContent: "space-evenly",
-                alignItems: "center",
-                textAlign: "center",
-              }}
-            ></Stack>
-            <Stack
-              sx={{
-                width: 160,
-                height: 50,
-                justifyContent: "space-evenly",
-                alignItems: "center",
-                textAlign: "center",
-              }}
-            >
-              <Typography
-                sx={{
-                  width: "100%",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textAlign: "center",
-                }}
-              >
-                সাবেক টাকা
-              </Typography>
-            </Stack>
-            <Stack
-              sx={{
-                width: 70,
-                height: 50,
-                backgroundColor: "#f1f8ff",
-              }}
-            >
-              <TextField
-                fullWidth
-                size="small"
-                margin="dense"
-                sx={{
-                  backgroundColor: "#dddfff",
-                }}
-                f
-                placeholder="0"
-                onChange={(e) =>
-                  handleChange("previousReserve", e.target.value)
-                }
-              />
-            </Stack>
-            <Stack
-              sx={{
-                width: 70,
-                height: 50,
-                justifyContent: "space-evenly",
-                alignItems: "center",
-                textAlign: "center",
-              }}
-            >
-              <Typography>{inputs.previousReserve}৳</Typography>
-            </Stack>
-          </Stack>
-
-          <Stack
-            sx={{
-              flexDirection: "row",
-              borderBottomWidth: 1,
-              borderColor: "#7393b3",
-            }}
-          >
-            <Stack
-              sx={{
-                width: 70,
-                height: 50,
-                justifyContent: "space-evenly",
-                alignItems: "center",
-                textAlign: "center",
-              }}
-            ></Stack>
-            <Stack
-              sx={{
-                width: 160,
-                height: 50,
-                justifyContent: "space-evenly",
-                alignItems: "center",
-                textAlign: "center",
-              }}
-            ></Stack>
-            <Stack
-              sx={{
-                width: 70,
-                height: 50,
-                justifyContent: "space-evenly",
-                alignItems: "center",
-                textAlign: "center",
-              }}
-            ></Stack>
-            <Stack
-              sx={{
-                width: 70,
-                height: 50,
-                justifyContent: "space-evenly",
-                alignItems: "center",
-                textAlign: "center",
-              }}
-            >
-              <Typography>{inputs.finalCost2}৳</Typography>
-            </Stack>
-          </Stack>
-
-          <Stack
-            sx={{
-              flexDirection: "row",
-              borderBottomWidth: 1,
-              borderColor: "#7393b3",
-            }}
-          >
-            <Stack
-              sx={{
-                width: 70,
-                height: 50,
-                justifyContent: "space-evenly",
-                alignItems: "center",
-                textAlign: "center",
-              }}
-            ></Stack>
-            <Stack
-              sx={{
-                width: 160,
-                height: 50,
-                justifyContent: "space-evenly",
-                alignItems: "center",
-                textAlign: "center",
-              }}
-            >
-              <Typography
-                sx={{
-                  width: "100%",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textAlign: "center",
-                }}
-              >
-                জমা
-              </Typography>
-            </Stack>
-            <Stack
-              sx={{
-                width: 70,
-                height: 50,
-                backgroundColor: "#f1f8ff",
-              }}
-            >
-              <TextField
-                fullWidth
-                size="small"
-                margin="dense"
-                sx={{
-                  backgroundColor: "#dddfff",
-                }}
-                f
-                placeholder="0"
-                onChange={(e) => handleChange("reserve", e.target.value)}
-              />
-            </Stack>
-            <Stack
-              sx={{
-                width: 70,
-                height: 50,
-                justifyContent: "space-evenly",
-                alignItems: "center",
-                textAlign: "center",
-              }}
-            >
-              <Typography>{inputs.reserve}৳</Typography>
-            </Stack>
-          </Stack>
-
-          <Stack
-            sx={{
-              flexDirection: "row",
-              borderBottomWidth: 1,
-              borderColor: "#7393b3",
-            }}
-          >
-            <Typography
-              sx={{
-                width: 70,
-                height: 50,
-                justifyContent: "space-evenly",
-                alignItems: "center",
-                textAlign: "center",
-              }}
-            ></Typography>
-            <Stack
-              sx={{
-                width: 160,
-                height: 50,
-                justifyContent: "space-evenly",
-                alignItems: "center",
-                textAlign: "center",
-              }}
-            >
-              <Typography
-                sx={{
-                  width: "100%",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textAlign: "center",
-                }}
-              >
-                মোট বাকি টাকা
-              </Typography>
-            </Stack>
-            <Typography
-              sx={{
-                width: 70,
-                height: 50,
-                justifyContent: "space-evenly",
-                alignItems: "center",
-                textAlign: "center",
-              }}
-            ></Typography>
-            <Stack
-              sx={{
-                width: 70,
-                height: 50,
-                justifyContent: "space-evenly",
-                alignItems: "center",
-                textAlign: "center",
-              }}
-            >
-              <Typography>{inputs.finalReserve}৳</Typography>
-            </Stack>
-          </Stack>
-        </Stack>
       </Container>
     </>
   );
