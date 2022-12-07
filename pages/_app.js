@@ -1,4 +1,4 @@
-import Layout from "../components/Layout";
+import Layout from "../components/layout";
 import "../styles/globals.css";
 import { Provider } from "react-redux";
 import { store, persistor } from "../redux/store";

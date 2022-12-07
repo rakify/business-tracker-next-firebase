@@ -71,7 +71,8 @@ const EntryForm = () => {
   // Handle change in quantity and also update subtotal for commission based product
   const handleQuantity = (valuePassed, price, id) => {
     let value = 0;
-    if (valuePassed !== "" && !isNaN(valuePassed)) value = valuePassed;
+    if (valuePassed !== "" && !isNaN(valuePassed))
+      value = parseInt(valuePassed);
     let subtotal = value * price;
     setSubtotal((prev) => {
       return { ...prev, [id]: subtotal.toFixed(2) };
@@ -155,7 +156,19 @@ const EntryForm = () => {
       (item) => item?.acceptCommission !== true
     );
 
-  const handleSubmit = () => {};
+  const handleOrder = () => {
+    //if theres quantity more than 0 update products stock
+
+    //place order
+    const order = {
+      ...inputs,
+      subtotal,
+      subtotal2,
+      quantity,
+      quantity2,
+    };
+    console.log(order);
+  };
 
   return (
     <>
@@ -1184,7 +1197,11 @@ const EntryForm = () => {
                     <Typography>{inputs.finalReserve}৳</Typography>
                   </Stack>
                 </Stack>
-                <Button fullWidth variant="contained">
+                <Button
+                  onClick={() => handleOrder()}
+                  fullWidth
+                  variant="contained"
+                >
                   Confirm Order
                 </Button>
               </Stack>
