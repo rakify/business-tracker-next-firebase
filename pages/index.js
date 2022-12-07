@@ -1,8 +1,6 @@
 import Head from "next/head";
-import Image from "next/image";
 import { useSelector } from "react-redux";
-import styles from "../styles/Index.module.css";
-import EntryForm from "./EntryForm";
+import EntryForm from "../components/EntryForm";
 import Login from "./login";
 
 export default function Home() {

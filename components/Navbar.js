@@ -1,5 +1,4 @@
 import React from "react";
-import styles from "../styles/Navbar.module.css";
 import { Button, Typography, Stack, AppBar, Toolbar } from "@mui/material";
 import { logout } from "../redux/apiCalls";
 import { useDispatch, useSelector } from "react-redux";
