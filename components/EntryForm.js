@@ -12,6 +12,7 @@ import {
   Button,
   InputAdornment,
 } from "@mui/material";
+import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getProductData } from "../redux/apiCalls";
@@ -193,23 +194,30 @@ const EntryForm = () => {
             variant="h5"
             sx={{ textAlign: "center", textTransform: "capitalize" }}
           >
-            {user?.shopName || ""}
+            {user?.shopName || <Link href="/settings">[add shop name]</Link>}
           </Typography>
           <Typography sx={{ textAlign: "center", textTransform: "capitalize" }}>
-            {user?.shopAddress || ""}
+            {user?.shopAddress || (
+              <Link href="/settings">[add shop address]</Link>
+            )}
           </Typography>
           <Typography sx={{ textAlign: "center", textTransform: "capitalize" }}>
-            {user?.shopDetails || ""}
+            {user?.shopDetails || (
+              <Link href="/settings">[add shop details]</Link>
+            )}
           </Typography>
           <Typography sx={{ textAlign: "center", textTransform: "capitalize" }}>
-            Mobile: {user?.shopOtherPn || ""}, Office:{" "}
-            {user?.shopOfficePn || ""}
+            Mobile:{" "}
+            {user?.shopOtherPn || <Link href="/settings">[add phone]</Link>},
+            Office:{" "}
+            {user?.shopOfficePn || <Link href="/settings">[add phone]</Link>}
           </Typography>
         </Stack>
-        {products === 0 ? (
+        {products.length === 0 ? (
           <Stack>
             <Typography style={{ fontSize: 20 }}>
-              Please add products before continue.
+              Please <Link href="/products/add/">add product</Link> before
+              continue.
             </Typography>
           </Stack>
         ) : (
