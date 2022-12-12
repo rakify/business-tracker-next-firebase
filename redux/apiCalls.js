@@ -37,6 +37,7 @@ import {
   updateProductStart,
   updateProductSuccess,
 } from "./productRedux";
+import { sendPasswordResetEmail } from "firebase/auth";
 
 //Admin
 export const getAllUsers = async () => {
@@ -177,11 +178,32 @@ export const getProductData = async (dispatch, uid) => {
 export const logout = async (dispatch) => {
   dispatch(logoutStart());
   try {
-    await auth.signOut();
     dispatch(resetProduct());
     dispatch(logoutSuccess());
   } catch (err) {
     console.log(err);
     dispatch(logoutFailure());
+  }
+};
+
+export const resetPassword = async (email) => {
+  // sendPasswordResetEmail(auth, email)
+  //   .then(() => {
+  //     // Password reset email sent!
+  //     // ..
+  //   })
+  //   .catch((error) => {
+  //     const errorCode = error.code;
+  //     const errorMessage = error.message;
+  //     // ..
+  //   });
+  // const url = `https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=${API_KEY}`;
+  try {
+    await sendPasswordResetEmail(auth, email);
+    return 200;
+  } catch (err) {
+    console.log(err);
+    console.log(err.code);
+    return err.code;
   }
 };

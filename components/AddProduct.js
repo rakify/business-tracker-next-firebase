@@ -17,7 +17,7 @@ import {
 } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import { v4 as uuidv4 } from "uuid";
-import { addProduct } from "../../redux/apiCalls";
+import { addProduct } from "../redux/apiCalls";
 import Link from "next/link";
 import { ArrowCircleLeft, ArrowLeft, SwipeLeftAlt } from "@mui/icons-material";
 

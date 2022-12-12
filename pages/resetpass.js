@@ -9,53 +9,41 @@ import { useDispatch, useSelector } from "react-redux";
 import { useState } from "react";
 import { Alert, Snackbar } from "@mui/material";
 import Link from "next/link";
-import { getProductData, getUserData } from "../redux/apiCalls";
+import { getProductData, getUserData, resetPassword } from "../redux/apiCalls";
 import { auth } from "../config/firebase";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { useRouter } from "next/router";
 import Head from "next/head";
 
-export default function Login({ from = "" }) {
-  const dispatch = useDispatch();
-  const router = useRouter();
-
+export default function ResetPass() {
   const [response, setResponse] = useState(false);
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-
   const handleSubmit = (event) => {
     event.preventDefault();
     if (email === "")
       setResponse({ type: "warning", message: "Email is required" });
-    else if (password === "")
-      setResponse({ type: "warning", message: "Password is required." });
     else {
-      signInWithEmailAndPassword(auth, email, password)
-        .then((credential) => {
-          getUserData(dispatch, credential.user.uid);
-          setResponse({ type: "success", message: "Logged In Successfully." });
-          from === "" && router.push("/");
-        })
-        .catch((error) => {
+      resetPassword(email).then((res) => {
+        res === 200 &&
+          setResponse({
+            type: "success",
+            message:
+              "We have sent an email with instruction on how to reset your password. Please check spam folders also.",
+          });
+        res !== 200 &&
           setResponse({
             type: "error",
             message:
-              error.code === "auth/invalid-email"
-                ? "Invalid email."
-                : error.code === "auth/user-not-found"
-                ? "User not found."
-                : error.code === "auth/wrong-password"
-                ? "Wrong password."
-                : "Network error.",
+              "Could not reset. Please check if email address you provided is correct.",
           });
-        });
+      });
     }
   };
 
   return (
     <>
       <Head>
-        <title>Login - Business Tracker</title>
+        <title>Reset Password - Business Tracker</title>
         <meta
           name="description"
           content="Business tracker is a web application for business people to record and to calculate their sells faster"
@@ -73,7 +61,7 @@ export default function Login({ from = "" }) {
           }}
         >
           <Typography component="h1" variant="h5">
-            {from === "" ? "Sign in" : `Please login to continue to ${from}`}
+            Reset Password
           </Typography>
           <Box
             component="form"
@@ -92,31 +80,19 @@ export default function Login({ from = "" }) {
               autoFocus
               variant="standard"
             />
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              name="password"
-              label="Password"
-              type="password"
-              id="password"
-              autoComplete="current-password"
-              variant="standard"
-              onChange={(e) => setPassword(e.target.value)}
-            />
             <Button
               type="submit"
               fullWidth
               variant="contained"
               sx={{ mt: 3, mb: 2 }}
             >
-              Sign In
+              Reset Password
             </Button>
             <Grid container>
               <Grid item xs>
-                Forgot password?
-                <Link href="/resetpass" variant="body2" sx={{ ml: 1 }}>
-                  Reset Password
+                Already have an account?{" "}
+                <Link href="/login" sx={{ ml: 1, textDecoration: "none" }}>
+                  Log In
                 </Link>
               </Grid>
               <Grid item>

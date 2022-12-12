@@ -15,7 +15,7 @@ import {
   Tooltip,
 } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
-import { updateProduct } from "../../../redux/apiCalls";
+import { updateProduct } from "../redux/apiCalls";
 import Link from "next/link";
 import { ArrowCircleLeft } from "@mui/icons-material";
 import { useRouter } from "next/router";
@@ -219,11 +219,3 @@ export default function EditProduct() {
   );
 }
 
-// // This gets called on every request
-// export async function getServerSideProps() {
-//   // Fetch product from external API
-//   const product = getProduct(id);
-
-//   // Pass data to the page via props
-//   return { props: { product } };
-// }
