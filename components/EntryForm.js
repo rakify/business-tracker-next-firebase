@@ -1,4 +1,17 @@
-import { Container, Typography, Stack, TextField, Button } from "@mui/material";
+import {
+  AccountCircle,
+  AccountCircleRounded,
+  BusinessRounded,
+  LocalPhoneRounded,
+} from "@mui/icons-material";
+import {
+  Container,
+  Typography,
+  Stack,
+  TextField,
+  Button,
+  InputAdornment,
+} from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getProductData } from "../redux/apiCalls";
@@ -32,7 +45,9 @@ const EntryForm = () => {
     finalCost2: 0.0, //abs(previousReserve-finalCost)
     reserve: 0.0, // todays reserve
     finalReserve: 0.0, // (previousReserve-cost)+reserve
-    by: "", //buyer
+    customerName: "", //buyer
+    customerContact: "", //buyer
+    customerAddress: "", //buyer
   });
 
   //handle string value
@@ -222,17 +237,63 @@ const EntryForm = () => {
                   alignItems: "center",
                 }}
               >
-                <Typography sx={{ fontWeight: "bold" }}>Name:</Typography>
-                <TextField
-                  variant="filled"
-                  size="small"
-                  margin="dense"
-                  sx={{
-                    backgroundColor: "#dddfff",
-                    textAlign: "center",
-                  }}
-                  onChange={(e) => handleSelectChange("by", e.target.value)}
-                />
+                <Typography sx={{ fontWeight: "bold" }}>Customer</Typography>
+                <Stack>
+                  <TextField
+                    variant="standard"
+                    label="Name"
+                    size="small"
+                    margin="dense"
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <AccountCircleRounded />
+                        </InputAdornment>
+                      ),
+                    }}
+                    onChange={(e) =>
+                      handleSelectChange("customerName", e.target.value)
+                    }
+                  />
+                </Stack>
+                <Stack>
+                  <TextField
+                    variant="standard"
+                    label="Contact"
+                    size="small"
+                    margin="dense"
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <LocalPhoneRounded />
+                        </InputAdornment>
+                      ),
+                      inputMode: "numeric",
+                      pattern: "[0-9]*",
+                    }}
+                    onChange={(e) =>
+                      handleSelectChange("customerContact", e.target.value)
+                    }
+                  />
+                </Stack>
+                <Stack>
+                  <TextField
+                    variant="standard"
+                    label="Address"
+                    size="small"
+                    margin="dense"
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <BusinessRounded />
+                        </InputAdornment>
+                      ),
+                    }}
+                    onChange={(e) =>
+                      handleSelectChange("customerAddress", e.target.value)
+                    }
+                  />
+                </Stack>
               </Stack>
             </Stack>
 

@@ -22,10 +22,10 @@ const Navbar = () => {
           </Link>
           {user ? (
             <Stack direction="row" alignItems="center" gap={2}>
-              <Link href="/profile">Profile</Link>
               <Link href="/products">Products</Link>
-              <Link href="/products">Customers</Link>
-              <Link href="/products">Orders</Link>
+              <Link href="/orders">Orders</Link>
+              <Link href="/settings">Settings</Link>
+
               <Button
                 sx={{ backgroundColor: "white" }}
                 color="secondary"
