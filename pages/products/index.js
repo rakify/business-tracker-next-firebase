@@ -176,18 +176,16 @@ const Products = () => {
             No product added yet.
           </Typography>
         ) : (
-          <>
-            <DataGrid
-              rows={products}
-              getRowId={(row) => row.id}
-              columns={columns}
-              pageSize={5}
-              rowsPerPageOptions={[5]}
-              disableSelectionOnClick
-              density="comfortable"
-              sx={{ mt: 10, height: 500 }}
-            />
-          </>
+          <DataGrid
+            rows={products}
+            getRowId={(row) => row.id}
+            columns={columns}
+            pageSize={5}
+            rowsPerPageOptions={[5]}
+            disableSelectionOnClick
+            density="comfortable"
+            sx={{height: 500 }}
+          />
         )}
 
         {/* Confirm Delete */}
