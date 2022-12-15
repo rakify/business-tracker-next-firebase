@@ -20,12 +20,24 @@ const Navbar = () => {
           <Link href="/">
             <Typography variant="h6">Business Tracker</Typography>
           </Link>
-          {user ? (
+          {user?.accountType === "Seller" ? (
             <Stack direction="row" alignItems="center" gap={2}>
               <Link href="/products">Products</Link>
               <Link href="/orders">Orders</Link>
+              <Link href="/registerSalesman">Salesman</Link>
               <Link href="/settings">Settings</Link>
 
+              <Button
+                sx={{ backgroundColor: "white" }}
+                color="secondary"
+                onClick={() => logout(dispatch)}
+              >
+                Logout
+              </Button>
+            </Stack>
+          ) : user?.accountType === "Salesman" ? (
+            <Stack direction="row" alignItems="center" gap={2}>
+              <Link href="/orders">Orders</Link>
               <Button
                 sx={{ backgroundColor: "white" }}
                 color="secondary"

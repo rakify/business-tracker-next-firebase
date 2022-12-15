@@ -129,6 +129,17 @@ export const addUserData = async (userInfo) => {
     return { type: "error", message: err };
   }
 };
+export const addSalesmanData = async (userInfo) => {
+  try {
+    await setDoc(doc(db, "users", userInfo.salesmanUid), userInfo);
+    return {
+      type: "success",
+      message: "New  salesman account created successfully.",
+    };
+  } catch (err) {
+    return { type: "error", message: err };
+  }
+};
 export const getUserData = async (dispatch, uid) => {
   dispatch(getUserStart());
   const docRef = doc(db, "users", uid);
@@ -174,6 +185,31 @@ export const getProductData = async (dispatch, uid) => {
   }
 };
 
+// Orders
+export const addOrder = async (order) => {
+  try {
+    const docRef = await addDoc(collection(db, "orders"), order);
+    console.log(docRef);
+  } catch (err) {
+    console.log(err);
+  }
+};
+export const getOrderData = async (uid) => {
+  try {
+    const q = query(collection(db, "orders"), where("uid", "==", uid));
+    const querySnapshot = await getDocs(q);
+    let orders = [];
+    querySnapshot.forEach((doc) => {
+      orders.push(doc.data());
+    });
+    console.log(orders)
+    return orders;
+  } catch (err) {
+    console.log(err);
+    return err;
+  }
+};
+
 // All
 export const logout = async (dispatch) => {
   dispatch(logoutStart());
@@ -187,17 +223,6 @@ export const logout = async (dispatch) => {
 };
 
 export const resetPassword = async (email) => {
-  // sendPasswordResetEmail(auth, email)
-  //   .then(() => {
-  //     // Password reset email sent!
-  //     // ..
-  //   })
-  //   .catch((error) => {
-  //     const errorCode = error.code;
-  //     const errorMessage = error.message;
-  //     // ..
-  //   });
-  // const url = `https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=${API_KEY}`;
   try {
     await sendPasswordResetEmail(auth, email);
     return 200;

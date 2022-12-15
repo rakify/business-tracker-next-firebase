@@ -11,18 +11,27 @@ import {
   TextField,
   Button,
   InputAdornment,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { getProductData } from "../redux/apiCalls";
+import { addOrder, getOrderData, getProductData } from "../redux/apiCalls";
 const EntryForm = () => {
   const dispatch = useDispatch();
   const user = useSelector((state) => state.user.currentUser);
   const products = useSelector((state) => state.product.products);
+  const [response, setResponse] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [orders, setOrders] = useState([]);
 
   useEffect(() => {
     getProductData(dispatch, user.uid);
+    getOrderData(user.uid).then((res) => {
+      setOrders(res);
+      setInputs((prev) => ({ ...prev, entryNo: res.length + 1 }));
+    });
   }, [user.uid]);
 
   const weekday = new Date().toLocaleString("en-us", {
@@ -33,11 +42,10 @@ const EntryForm = () => {
   const dateArray = date.split(",");
 
   const [inputs, setInputs] = useState({
-    user: user.username,
-    entryNo: 1, //if no entries set 1 or set first entries(sorted so) entryNo+1
-    date: date,
+    uid: user.uid,
+    entryNo: 0, //if no entries set 1 or set first entries(sorted so) entryNo+1
     costForWithCommission: 0.0, // todays total cost for commission based product
-    commissionPercentage: 0.0, // perchantage of discount
+    commissionPercentage: 0, // perchantage of discount
     commissionValue: 0.0, // discount ammount
     costAfterCommission: 0.0,
     costForWithoutCommission: 0.0, // todays total cost for without commission based product
@@ -172,47 +180,90 @@ const EntryForm = () => {
       (item) => item?.acceptCommission !== true
     );
 
-  const handleOrder = () => {
-    //if theres quantity more than 0 update products stock
-
-    //place order
-    const order = {
-      ...inputs,
-      subtotal,
-      subtotal2,
-      quantity,
-      quantity2,
-    };
-    console.log(order);
+  const handleOrder = async () => {
+    if (inputs.customerName === "")
+      setResponse({ type: "error", message: "Please enter customer name." });
+    else if (inputs.customerContact === "")
+      setResponse({
+        type: "error",
+        message: "Please enter customer contact information.",
+      });
+    else {
+      setLoading(true);
+      let preparedBy = "",
+        preparedById = "";
+      if (user.accountType === "Seller") {
+        preparedBy = user.username;
+        preparedById = user.uid;
+      } else {
+        preparedBy = user.name;
+        preparedById = user.salesmanUid;
+      }
+      //place order
+      const order = {
+        ...inputs,
+        subtotal,
+        subtotal2,
+        quantity,
+        quantity2,
+        user,
+        date: new Date().toLocaleString("en-us"),
+        preparedBy,
+        preparedById,
+      };
+      try {
+        await addOrder(order);
+        setResponse({
+          type: "success",
+          message: "Order placed successfully.",
+        });
+        setLoading(false);
+      } catch (err) {
+        console.log(err);
+        setResponse({
+          type: "error",
+          message: err.message,
+        });
+        setLoading(false);
+      }
+    }
   };
 
   return (
     <>
       <Container>
-        <Stack>
-          <Typography
-            variant="h5"
-            sx={{ textAlign: "center", textTransform: "capitalize" }}
-          >
-            {user?.shopName || <Link href="/settings">[add shop name]</Link>}
-          </Typography>
-          <Typography sx={{ textAlign: "center", textTransform: "capitalize" }}>
-            {user?.shopAddress || (
-              <Link href="/settings">[add shop address]</Link>
-            )}
-          </Typography>
-          <Typography sx={{ textAlign: "center", textTransform: "capitalize" }}>
-            {user?.shopDetails || (
-              <Link href="/settings">[add shop details]</Link>
-            )}
-          </Typography>
-          <Typography sx={{ textAlign: "center", textTransform: "capitalize" }}>
-            Mobile:{" "}
-            {user?.shopOtherPn || <Link href="/settings">[add phone]</Link>},
-            Office:{" "}
-            {user?.shopOfficePn || <Link href="/settings">[add phone]</Link>}
-          </Typography>
-        </Stack>
+        {user.accountType === "Seller" && (
+          <Stack>
+            <Typography
+              variant="h5"
+              sx={{ textAlign: "center", textTransform: "capitalize" }}
+            >
+              {user?.shopName || <Link href="/settings">[add shop name]</Link>}
+            </Typography>
+            <Typography
+              sx={{ textAlign: "center", textTransform: "capitalize" }}
+            >
+              {user?.shopAddress || (
+                <Link href="/settings">[add shop address]</Link>
+              )}
+            </Typography>
+            <Typography
+              sx={{ textAlign: "center", textTransform: "capitalize" }}
+            >
+              {user?.shopDetails || (
+                <Link href="/settings">[add shop details]</Link>
+              )}
+            </Typography>
+            <Typography
+              sx={{ textAlign: "center", textTransform: "capitalize" }}
+            >
+              Mobile:{" "}
+              {user?.shopOtherPn || <Link href="/settings">[add phone]</Link>},
+              Office:{" "}
+              {user?.shopOfficePn || <Link href="/settings">[add phone]</Link>}
+            </Typography>
+          </Stack>
+        )}
         {products.length === 0 ? (
           <Stack>
             <Typography style={{ fontSize: 20 }}>
@@ -223,6 +274,7 @@ const EntryForm = () => {
         ) : (
           <>
             <Stack sx={{ marginLeft: 5, marginRight: 5, marginBottom: 5 }}>
+              {/* Entry Date Day */}
               <Stack
                 sx={{
                   flexDirection: "row",
@@ -230,7 +282,9 @@ const EntryForm = () => {
                   alignItems: "center",
                 }}
               >
-                <Typography sx={{ fontWeight: "bold" }}>Entry: 1</Typography>
+                <Typography sx={{ fontWeight: "bold" }}>
+                  Entry: {inputs.entryNo}
+                </Typography>
                 <Typography sx={{ fontWeight: "bold" }}>
                   Date: {dateArray[0]}
                 </Typography>
@@ -238,6 +292,7 @@ const EntryForm = () => {
                   Day: {weekday}
                 </Typography>
               </Stack>
+              {/* Name Contact Address */}
               <Stack
                 sx={{
                   flexDirection: "row",
@@ -248,6 +303,7 @@ const EntryForm = () => {
                 <Typography sx={{ fontWeight: "bold" }}>Customer</Typography>
                 <Stack>
                   <TextField
+                    required
                     variant="standard"
                     label="Name"
                     size="small"
@@ -266,6 +322,7 @@ const EntryForm = () => {
                 </Stack>
                 <Stack>
                   <TextField
+                    required
                     variant="standard"
                     label="Contact"
                     size="small"
@@ -1267,9 +1324,10 @@ const EntryForm = () => {
                   </Stack>
                 </Stack>
                 <Button
-                  onClick={() => handleOrder()}
+                  onClick={handleOrder}
                   fullWidth
                   variant="contained"
+                  disabled={loading}
                 >
                   Confirm Order
                 </Button>
@@ -1278,6 +1336,21 @@ const EntryForm = () => {
           </>
         )}
       </Container>
+
+      {/* Display AddProduct success message or error */}
+      <Snackbar
+        open={Boolean(response)}
+        autoHideDuration={4000}
+        onClose={() => setResponse(false)}
+      >
+        <Alert
+          onClose={() => setResponse(false)}
+          severity={response?.type}
+          sx={{ width: "100%" }}
+        >
+          {response?.message}
+        </Alert>
+      </Snackbar>
     </>
   );
 };
