@@ -13,12 +13,19 @@ import {
   Snackbar,
   Alert,
   Box,
+  FormControl,
 } from "@mui/material";
 import { DataGrid, GridToolbarQuickFilter } from "@mui/x-data-grid";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { addOrder, getOrderData, getProductData } from "../redux/apiCalls";
+import {
+  addOrder,
+  getOrderData,
+  getProductData,
+  updateProduct,
+  updateProductQuantity,
+} from "../redux/apiCalls";
 
 function QuickSearchToolbar() {
   return (
@@ -48,7 +55,7 @@ const EntryForm = () => {
   const [productWithoutCommission, setProductWithoutCommission] = useState([]);
   const [response, setResponse] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [orders, setOrders] = useState([]);
+  const [validation, setValidation] = useState(false);
 
   useEffect(() => {
     getProductData(dispatch, user.uid);
@@ -66,10 +73,9 @@ const EntryForm = () => {
     setProductWithCommission(productWithCommission);
 
     getOrderData(user.uid).then((res) => {
-      setOrders(res);
       setInputs((prev) => ({ ...prev, entryNo: res.length + 1 }));
     });
-  }, [user.uid]);
+  }, []);
 
   const weekday = new Date().toLocaleString("en-us", {
     //this is so we can let only todays entry the access to remove
@@ -130,7 +136,15 @@ const EntryForm = () => {
   const [subtotal2, setSubtotal2] = useState({ ...initialQuantity });
 
   // Handle change in quantity and also update subtotal for commission based product
-  const handleQuantity = (valuePassed, price, id) => {
+  const handleQuantity = (valuePassed, price, id, stock, name) => {
+    if (stock < valuePassed) {
+      setValidation({
+        type: "warning",
+        message: `Insufficient stock for ${name}. Only ${stock} item(s) left.`,
+        id: id,
+      });
+    } else setValidation(false);
+
     let value = 0;
     if (valuePassed !== "" && !isNaN(valuePassed))
       value = parseInt(valuePassed);
@@ -142,9 +156,16 @@ const EntryForm = () => {
       return { ...prev, [id]: value };
     });
   };
-
   // Handle change in quantity and also update subtotal for without commission based product
-  const handleQuantity2 = (valuePassed, price, id) => {
+  const handleQuantity2 = (valuePassed, price, id, stock, name) => {
+    if (stock < valuePassed) {
+      setValidation({
+        type: "warning",
+        message: `Insufficient stock for ${name}. Only ${stock} item(s) left.`,
+        id: id,
+      });
+    } else setValidation(false);
+
     let value = 0;
     if (valuePassed !== "" && !isNaN(valuePassed)) value = valuePassed;
     let subtotal = value * price;
@@ -238,10 +259,17 @@ const EntryForm = () => {
             sx={{
               width: 100,
               height: 50,
-              backgroundColor: "#f1f8ff",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
             }}
           >
             <TextField
+              error={params.row.stock < quantity[params.row.id]}
+              disabled={
+                !params.row.stock ||
+                (validation && validation.id !== params.row.id)
+              }
               fullWidth
               size="small"
               sx={{
@@ -249,7 +277,13 @@ const EntryForm = () => {
               }}
               placeholder="0"
               onChange={(e) =>
-                handleQuantity(e.target.value, params.row.price, params.row.id)
+                handleQuantity(
+                  e.target.value,
+                  params.row.price,
+                  params.row.id,
+                  params.row.stock,
+                  params.row.name
+                )
               }
             />
           </Stack>
@@ -295,10 +329,17 @@ const EntryForm = () => {
             sx={{
               width: 100,
               height: 50,
-              backgroundColor: "#f1f8ff",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
             }}
           >
             <TextField
+              error={params.row.stock < quantity[params.row.id]}
+              disabled={
+                !params.row.stock ||
+                (validation && validation.id !== params.row.id)
+              }
               fullWidth
               size="small"
               margin="dense"
@@ -307,7 +348,13 @@ const EntryForm = () => {
               }}
               placeholder="0"
               onChange={(e) =>
-                handleQuantity2(e.target.value, params.row.price, params.row.id)
+                handleQuantity2(
+                  e.target.value,
+                  params.row.price,
+                  params.row.id,
+                  params.row.stock,
+                  params.row.name
+                )
               }
             />
           </Stack>
@@ -336,6 +383,7 @@ const EntryForm = () => {
       });
     else {
       setLoading(true);
+      // if seller himself prepares the order give his username else salesman name
       let preparedBy = "",
         preparedById = "";
       if (user.accountType === "Seller") {
@@ -345,7 +393,16 @@ const EntryForm = () => {
         preparedBy = user.name;
         preparedById = user.salesmanUid;
       }
-      //place order
+
+      // remove unnecessary object keys containing value 0
+      Object.keys(quantity).forEach(
+        (k) => quantity[k] == 0 && delete quantity[k] && delete subtotal[k]
+      );
+      Object.keys(quantity2).forEach(
+        (k) => quantity2[k] == 0 && delete quantity2[k] && delete subtotal2[k]
+      );
+
+      //prepare order
       const order = {
         ...inputs,
         subtotal,
@@ -356,6 +413,8 @@ const EntryForm = () => {
         preparedBy,
         preparedById,
       };
+
+      // place order
       try {
         await addOrder(order);
         setResponse({
@@ -363,10 +422,18 @@ const EntryForm = () => {
           message: "Order placed successfully.",
         });
 
-        //handle stock
-
+        //handle stock update
+        for (const key in quantity) {
+          await updateProductQuantity(key, quantity[key]).then((res) =>
+            console.log(res)
+          );
+        }
+        for (const key in quantity2) {
+          await updateProductQuantity(key, quantity2[key]).then((res) =>
+            console.log(res)
+          );
+        }
         getOrderData(user.uid).then((res) => {
-          setOrders(res);
           setInputs((prev) => ({ ...prev, entryNo: res.length + 1 }));
         });
         setLoading(false);
@@ -383,7 +450,7 @@ const EntryForm = () => {
 
   return (
     <>
-      <Container maxWidth="xl" disableGutters>
+      <>
         {user.accountType === "Seller" && (
           <Stack>
             <Typography
@@ -517,7 +584,11 @@ const EntryForm = () => {
             <Stack
               direction="row"
               justifyContent="space-between"
-              sx={{ flexDirection: { xs: "column", md: "row", gap: 5 } }}
+              sx={{
+                flexDirection: { xs: "column", md: "row" },
+                alignItems: { sm: "center", md: "flex-start" },
+                gap: 5,
+              }}
             >
               {/* There exists product with commission */}
               <Stack>
@@ -555,7 +626,7 @@ const EntryForm = () => {
                         getRowId={(row) => row.id}
                         columns={columnsForProductWithCommission}
                         pageSize={10}
-                        rowsPerPageOptions={[4]}
+                        rowsPerPageOptions={[10]}
                         disableSelectionOnClick
                         density="comfortable"
                         initialState={{
@@ -680,7 +751,6 @@ const EntryForm = () => {
                             sx={{
                               backgroundColor: "#dddfff",
                             }}
-                            f
                             placeholder="0"
                             onChange={(e) =>
                               handleChange(
@@ -792,7 +862,7 @@ const EntryForm = () => {
                         getRowId={(row) => row.id}
                         columns={columnsForProductWithoutCommission}
                         pageSize={10}
-                        rowsPerPageOptions={[4]}
+                        rowsPerPageOptions={[10]}
                         disableSelectionOnClick
                         density="comfortable"
                         initialState={{
@@ -981,7 +1051,6 @@ const EntryForm = () => {
                       sx={{
                         backgroundColor: "#dddfff",
                       }}
-                      f
                       placeholder="0"
                       onChange={(e) =>
                         handleChange("previousReserve", e.target.value)
@@ -1099,7 +1168,6 @@ const EntryForm = () => {
                       sx={{
                         backgroundColor: "#dddfff",
                       }}
-                      f
                       placeholder="0"
                       onChange={(e) => handleChange("reserve", e.target.value)}
                     />
@@ -1179,7 +1247,7 @@ const EntryForm = () => {
                   onClick={handleOrder}
                   fullWidth
                   variant="contained"
-                  disabled={loading}
+                  disabled={loading || Boolean(validation?.id)}
                 >
                   Confirm Order
                 </Button>
@@ -1187,7 +1255,7 @@ const EntryForm = () => {
             </Stack>
           </>
         )}
-      </Container>
+      </>
 
       {/* Display AddProduct success message or error */}
       <Snackbar
@@ -1202,6 +1270,21 @@ const EntryForm = () => {
           sx={{ width: "100%" }}
         >
           {response?.message}
+        </Alert>
+      </Snackbar>
+      
+      {/* Display Quantity validation message */}
+      <Snackbar
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+        open={Boolean(validation)}
+        onClose={() => setValidation(validation)}
+      >
+        <Alert
+          onClose={() => setValidation(validation)}
+          severity={validation?.type}
+          sx={{ width: "100%" }}
+        >
+          {validation?.message}
         </Alert>
       </Snackbar>
     </>

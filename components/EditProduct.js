@@ -74,6 +74,7 @@ export default function EditProduct() {
         note: inputs.note,
         stock: parseInt(inputs.stock),
         acceptCommission: Boolean(checked),
+        createdAt: new Date().toLocaleString("en-us"),
       };
 
       updateProduct(dispatch, id, newProduct).then((res) => {
@@ -218,4 +219,3 @@ export default function EditProduct() {
     </Container>
   );
 }
-

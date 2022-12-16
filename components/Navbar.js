@@ -1,8 +1,16 @@
 import React from "react";
-import { Button, Typography, Stack, AppBar, Toolbar } from "@mui/material";
+import {
+  Button,
+  Typography,
+  Stack,
+  AppBar,
+  Toolbar,
+  Tooltip,
+} from "@mui/material";
 import { logout } from "../redux/apiCalls";
 import { useDispatch, useSelector } from "react-redux";
 import Link from "next/link";
+import { LogoutRounded } from "@mui/icons-material";
 
 const Navbar = () => {
   const dispatch = useDispatch();
@@ -28,11 +36,13 @@ const Navbar = () => {
               <Link href="/settings/">Settings</Link>
 
               <Button
-                sx={{ backgroundColor: "white" }}
-                color="secondary"
+                sx={{ backgroundColor: "inherit", color: "red" }}
+                size="small"
                 onClick={() => logout(dispatch)}
               >
-                Logout
+                <Tooltip title="Logout">
+                  <LogoutRounded />
+                </Tooltip>
               </Button>
             </Stack>
           ) : user?.accountType === "Salesman" ? (

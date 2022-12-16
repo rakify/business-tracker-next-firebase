@@ -17,6 +17,7 @@ import {
   doc,
   getDoc,
   getDocs,
+  increment,
   query,
   setDoc,
   updateDoc,
@@ -89,6 +90,23 @@ export const updateProduct = async (dispatch, id, product) => {
     };
   } catch (err) {
     dispatch(updateProductFailure());
+    return {
+      type: "error",
+      message: err.message,
+    };
+  }
+};
+export const updateProductQuantity = async (id, value) => {
+  try {
+    // Atomically decrement the stock of the product by given value.
+    await updateDoc(doc(db, "products", id), {
+      stock: increment(-value),
+    });
+    return {
+      type: "success",
+      message: "Product stock updated successfully.",
+    };
+  } catch (err) {
     return {
       type: "error",
       message: err.message,

@@ -58,7 +58,6 @@ const Orders = () => {
     });
   }, []);
 
-  console.log(orders);
   const [deleteOrderId, setDeleteOrderId] = useState(false);
   const [response, setResponse] = useState(false);
 
@@ -166,7 +165,7 @@ const Orders = () => {
           <Typography>List of Orders</Typography>
         </Stack>
 
-        {orders.length === 0 ? (
+        {orders && orders.length === 0 ? (
           <Typography
             sx={{
               color: "red",
@@ -179,6 +178,7 @@ const Orders = () => {
           </Typography>
         ) : (
           <DataGrid
+            loading={orders.length === 0}
             components={{ Toolbar: QuickToolbar }}
             rows={orders}
             getRowId={(row) => row.entryNo}
