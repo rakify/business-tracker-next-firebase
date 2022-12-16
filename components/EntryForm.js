@@ -389,7 +389,7 @@ const EntryForm = () => {
         type: "error",
         message: "Please enter customer contact information.",
       });
-    else if (!quantity.length && !quantity2.length) {
+    else if (!Object.keys(quantity).length && !Object.keys(quantity2).length) {
       setResponse({
         type: "warning",
         message:
