@@ -111,6 +111,13 @@ const Products = () => {
       editable: true,
     },
     {
+      field: "createdAt",
+      headerName: "Created At",
+      headerClassName: "super-app-theme--header",
+      width: 200,
+      editable: true,
+    },
+    {
       field: "action",
       headerName: "Action",
       headerClassName: "super-app-theme--header",
@@ -185,6 +192,11 @@ const Products = () => {
             disableSelectionOnClick
             density="comfortable"
             sx={{ height: 500 }}
+            initialState={{
+              sorting: {
+                sortModel: [{ field: "createdAt", sort: "desc" }],
+              },
+            }}
           />
         )}
 

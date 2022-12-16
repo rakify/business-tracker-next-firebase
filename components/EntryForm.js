@@ -1,5 +1,4 @@
 import {
-  AccountCircle,
   AccountCircleRounded,
   BusinessRounded,
   LocalPhoneRounded,
@@ -13,21 +12,59 @@ import {
   InputAdornment,
   Snackbar,
   Alert,
+  Box,
 } from "@mui/material";
+import { DataGrid, GridToolbarQuickFilter } from "@mui/x-data-grid";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { addOrder, getOrderData, getProductData } from "../redux/apiCalls";
+
+function QuickSearchToolbar() {
+  return (
+    <Box
+      sx={{
+        p: 0.5,
+        pb: 0,
+      }}
+    >
+      <GridToolbarQuickFilter
+        quickFilterParser={(searchInput) =>
+          searchInput.split(",").map((value) => value.trim())
+        }
+        quickFilterFormatter={(quickFilterValues) =>
+          quickFilterValues.join(", ")
+        }
+        debounceMs={200} // time before applying the new quick filter value
+      />
+    </Box>
+  );
+}
 const EntryForm = () => {
   const dispatch = useDispatch();
   const user = useSelector((state) => state.user.currentUser);
   const products = useSelector((state) => state.product.products);
+  const [productWithCommission, setProductWithCommission] = useState([]);
+  const [productWithoutCommission, setProductWithoutCommission] = useState([]);
   const [response, setResponse] = useState(false);
   const [loading, setLoading] = useState(false);
   const [orders, setOrders] = useState([]);
 
   useEffect(() => {
     getProductData(dispatch, user.uid);
+    let productWithoutCommission = [];
+    if (products.length)
+      productWithoutCommission = products?.filter(
+        (item) => item?.acceptCommission !== true
+      );
+    setProductWithoutCommission(productWithoutCommission);
+    let productWithCommission = [];
+    if (products.length)
+      productWithCommission = products?.filter(
+        (item) => item?.acceptCommission === true
+      );
+    setProductWithCommission(productWithCommission);
+
     getOrderData(user.uid).then((res) => {
       setOrders(res);
       setInputs((prev) => ({ ...prev, entryNo: res.length + 1 }));
@@ -42,7 +79,7 @@ const EntryForm = () => {
   const dateArray = date.split(",");
 
   const [inputs, setInputs] = useState({
-    uid: user.uid,
+    seller: user.uid,
     entryNo: 0, //if no entries set 1 or set first entries(sorted so) entryNo+1
     costForWithCommission: 0.0, // todays total cost for commission based product
     commissionPercentage: 0, // perchantage of discount
@@ -174,11 +211,120 @@ const EntryForm = () => {
     setInputs((prev) => ({ ...prev, finalCost2: finalCost2.toFixed(2) }));
   }, [inputs.finalCost, inputs.previousReserve, inputs.reserve]);
 
-  let productWithoutCommission = [];
-  if (products)
-    productWithoutCommission = products?.filter(
-      (item) => item?.acceptCommission !== true
-    );
+  const columnsForProductWithCommission = [
+    {
+      field: "price",
+      headerClassName: "super-app-theme--header",
+      headerName: "Price",
+      width: 100,
+      editable: false,
+    },
+    {
+      field: "name",
+      headerName: "Name",
+      headerClassName: "super-app-theme--header",
+      width: 100,
+      editable: false,
+    },
+    {
+      field: "quantity",
+      headerName: "Quantity",
+      headerClassName: "super-app-theme--header",
+      width: 100,
+      editable: false,
+      renderCell: (params) => {
+        return (
+          <Stack
+            sx={{
+              width: 100,
+              height: 50,
+              backgroundColor: "#f1f8ff",
+            }}
+          >
+            <TextField
+              fullWidth
+              size="small"
+              sx={{
+                backgroundColor: "#dddfff",
+              }}
+              placeholder="0"
+              onChange={(e) =>
+                handleQuantity(e.target.value, params.row.price, params.row.id)
+              }
+            />
+          </Stack>
+        );
+      },
+    },
+    {
+      field: "subtotal",
+      headerName: "Subtotal",
+      headerClassName: "super-app-theme--header",
+      width: 100,
+      editable: false,
+      renderCell: (params) => {
+        return <Typography>{subtotal[params.row.id]}</Typography>;
+      },
+    },
+  ];
+
+  const columnsForProductWithoutCommission = [
+    {
+      field: "price",
+      headerClassName: "super-app-theme--header",
+      headerName: "Price",
+      width: 100,
+      editable: false,
+    },
+    {
+      field: "name",
+      headerName: "Name",
+      headerClassName: "super-app-theme--header",
+      width: 100,
+      editable: false,
+    },
+    {
+      field: "quantity",
+      headerName: "Quantity",
+      headerClassName: "super-app-theme--header",
+      width: 100,
+      editable: false,
+      renderCell: (params) => {
+        return (
+          <Stack
+            sx={{
+              width: 100,
+              height: 50,
+              backgroundColor: "#f1f8ff",
+            }}
+          >
+            <TextField
+              fullWidth
+              size="small"
+              margin="dense"
+              sx={{
+                backgroundColor: "#dddfff",
+              }}
+              placeholder="0"
+              onChange={(e) =>
+                handleQuantity2(e.target.value, params.row.price, params.row.id)
+              }
+            />
+          </Stack>
+        );
+      },
+    },
+    {
+      field: "subtotal",
+      headerName: "Subtotal",
+      headerClassName: "super-app-theme--header",
+      width: 100,
+      editable: false,
+      renderCell: (params) => {
+        return <Typography>{subtotal2[params.row.id]}</Typography>;
+      },
+    },
+  ];
 
   const handleOrder = async () => {
     if (inputs.customerName === "")
@@ -206,8 +352,7 @@ const EntryForm = () => {
         subtotal2,
         quantity,
         quantity2,
-        user,
-        date: new Date().toLocaleString("en-us"),
+        createdAt: new Date().toLocaleString("en-us"),
         preparedBy,
         preparedById,
       };
@@ -216,6 +361,13 @@ const EntryForm = () => {
         setResponse({
           type: "success",
           message: "Order placed successfully.",
+        });
+
+        //handle stock
+
+        getOrderData(user.uid).then((res) => {
+          setOrders(res);
+          setInputs((prev) => ({ ...prev, entryNo: res.length + 1 }));
         });
         setLoading(false);
       } catch (err) {
@@ -231,7 +383,7 @@ const EntryForm = () => {
 
   return (
     <>
-      <Container>
+      <Container maxWidth="xl" disableGutters>
         {user.accountType === "Seller" && (
           <Stack>
             <Typography
@@ -365,7 +517,7 @@ const EntryForm = () => {
             <Stack
               direction="row"
               justifyContent="space-between"
-              sx={{ flexDirection: { xs: "column", md: "row" }, gap: 5 }}
+              sx={{ flexDirection: { xs: "column", md: "row", gap: 5 } }}
             >
               {/* There exists product with commission */}
               <Stack>
@@ -374,193 +526,45 @@ const EntryForm = () => {
                     <Typography
                       variant="overline"
                       sx={{
-                        border: "1px solid #2263a5",
+                        borderLeftWidth: 1,
+                        borderColor: "#2263a5",
                         textAlign: "center",
-                        fontWeight: "bold",
                         fontSize: 10,
+                        color: "white",
+                        backgroundColor: "#2263a5",
                       }}
                     >
                       Products That Accept Commission
                     </Typography>
-                    <Stack>
-                      <Stack
-                        sx={{
-                          flexDirection: "row",
-                          borderBottomWidth: 1,
-                          borderColor: "black",
+                    <Box
+                      sx={{
+                        height: 500,
+                        width: 420,
+                        "& .super-app-theme--header": {
+                          backgroundColor: "#2263a5",
+                          borderLeftWidth: 1,
+                          borderColor: "#f1f8ff",
+                          color: "white",
+                          height: "50px !important",
+                        },
+                      }}
+                    >
+                      <DataGrid
+                        components={{ Toolbar: QuickSearchToolbar }}
+                        rows={productWithCommission}
+                        getRowId={(row) => row.id}
+                        columns={columnsForProductWithCommission}
+                        pageSize={10}
+                        rowsPerPageOptions={[4]}
+                        disableSelectionOnClick
+                        density="comfortable"
+                        initialState={{
+                          sorting: {
+                            sortModel: [{ field: "createdAt", sort: "desc" }],
+                          },
                         }}
-                      >
-                        <Stack
-                          sx={{
-                            width: 70,
-                            height: 50,
-                            justifyContent: "space-evenly",
-                            alignItems: "center",
-                            backgroundColor: "#2263a5",
-                            borderLeftWidth: 1,
-                            borderColor: "#f1f8ff",
-                          }}
-                        >
-                          <Typography
-                            sx={{
-                              color: "white",
-                              fontWeight: "bold",
-                              fontSize: 10,
-                            }}
-                          >
-                            Price
-                          </Typography>
-                        </Stack>
-                        <Stack
-                          sx={{
-                            width: 160,
-                            height: 50,
-                            justifyContent: "space-evenly",
-                            alignItems: "center",
-                            backgroundColor: "#2263a5",
-                            borderLeftWidth: 1,
-                            borderColor: "#f1f8ff",
-                          }}
-                        >
-                          <Typography
-                            sx={{
-                              color: "white",
-                              fontWeight: "bold",
-                              fontSize: 10,
-                            }}
-                          >
-                            Name
-                          </Typography>
-                        </Stack>
-                        <Stack
-                          sx={{
-                            width: 70,
-                            height: 50,
-                            justifyContent: "space-evenly",
-                            alignItems: "center",
-                            backgroundColor: "#2263a5",
-                            borderLeftWidth: 1,
-                            borderColor: "#f1f8ff",
-                          }}
-                        >
-                          <Typography
-                            sx={{
-                              color: "white",
-                              fontWeight: "bold",
-                              fontSize: 10,
-                            }}
-                          >
-                            Quantity
-                          </Typography>
-                        </Stack>
-                        <Stack
-                          sx={{
-                            width: 70,
-                            height: 50,
-                            justifyContent: "space-evenly",
-                            alignItems: "center",
-                            backgroundColor: "#2263a5",
-                            borderLeftWidth: 1,
-                            borderColor: "#f1f8ff",
-                          }}
-                        >
-                          <Typography
-                            sx={{
-                              color: "white",
-                              fontWeight: "bold",
-                              fontSize: 10,
-                            }}
-                          >
-                            Subtotal
-                          </Typography>
-                        </Stack>
-                      </Stack>
-                    </Stack>
-
-                    {products
-                      .filter((item) => item?.acceptCommission === true)
-                      .map((item) => (
-                        <Stack key={item?.id}>
-                          <Stack
-                            sx={{
-                              flexDirection: "row",
-                            }}
-                          >
-                            <Stack
-                              sx={{
-                                width: 70,
-                                height: 50,
-                                justifyContent: "space-evenly",
-                                alignItems: "center",
-                                backgroundColor: "#f1f8ff",
-                              }}
-                            >
-                              <Typography style={{ color: "red" }}>
-                                {item?.price}
-                              </Typography>
-                            </Stack>
-                            <Stack
-                              sx={{
-                                borderLeftWidth: 1,
-                                borderColor: "#ffffff",
-                                width: 160,
-                                height: 50,
-                                justifyContent: "space-evenly",
-                                alignItems: "center",
-                                backgroundColor: "#f1f8ff",
-                              }}
-                            >
-                              <Typography
-                                sx={{
-                                  width: "100%",
-                                  textOverflow: "ellipsis",
-                                  whiteSpace: "nowrap",
-                                  overflow: "hidden",
-                                  textAlign: "center",
-                                }}
-                              >
-                                {item?.name}
-                              </Typography>
-                            </Stack>
-                            <Stack
-                              sx={{
-                                width: 70,
-                                height: 50,
-                                backgroundColor: "#f1f8ff",
-                              }}
-                            >
-                              <TextField
-                                fullWidth
-                                size="small"
-                                margin="dense"
-                                sx={{
-                                  backgroundColor: "#dddfff",
-                                }}
-                                f
-                                placeholder="0"
-                                onChange={(e) =>
-                                  handleQuantity(
-                                    e.target.value,
-                                    item?.price,
-                                    item?.id
-                                  )
-                                }
-                              />
-                            </Stack>
-                            <Stack
-                              sx={{
-                                width: 70,
-                                height: 50,
-                                justifyContent: "space-evenly",
-                                alignItems: "center",
-                                backgroundColor: "#f1f8ff",
-                              }}
-                            >
-                              <Typography>{subtotal[item?.id]}৳</Typography>
-                            </Stack>
-                          </Stack>
-                        </Stack>
-                      ))}
+                      />
+                    </Box>
 
                     {/* Calculations Part For Product that accepts commission */}
                     <>
@@ -757,199 +761,47 @@ const EntryForm = () => {
                     <Typography
                       variant="overline"
                       sx={{
-                        border: "1px solid #2263a5",
+                        borderLeftWidth: 1,
+                        borderColor: "#2263a5",
                         textAlign: "center",
-                        fontWeight: "bold",
                         fontSize: 10,
+                        color: "white",
+                        backgroundColor: "#2263a5",
                       }}
                     >
                       Products That Don't Accept Commission
                     </Typography>
 
-                    <Stack
+                    {/* Product list that does not accept Commission */}
+                    <Box
                       sx={{
-                        flexDirection: "row",
-                        borderBottomWidth: 1,
-                        borderColor: "black",
+                        height: 500,
+                        width: 420,
+                        "& .super-app-theme--header": {
+                          backgroundColor: "#2263a5",
+                          borderLeftWidth: 1,
+                          borderColor: "#f1f8ff",
+                          color: "white",
+                          height: "50px !important",
+                        },
                       }}
                     >
-                      <Stack
-                        sx={{
-                          width: 70,
-                          height: 50,
-                          justifyContent: "space-evenly",
-                          alignItems: "center",
-                          backgroundColor: "#2263a5",
-                          borderLeftWidth: 1,
-                          borderColor: "#f1f8ff",
+                      <DataGrid
+                        components={{ Toolbar: QuickSearchToolbar }}
+                        rows={productWithoutCommission}
+                        getRowId={(row) => row.id}
+                        columns={columnsForProductWithoutCommission}
+                        pageSize={10}
+                        rowsPerPageOptions={[4]}
+                        disableSelectionOnClick
+                        density="comfortable"
+                        initialState={{
+                          sorting: {
+                            sortModel: [{ field: "createdAt", sort: "desc" }],
+                          },
                         }}
-                      >
-                        <Typography
-                          sx={{
-                            color: "white",
-                            fontWeight: "bold",
-                            fontSize: 10,
-                          }}
-                        >
-                          Price
-                        </Typography>
-                      </Stack>
-                      <Stack
-                        sx={{
-                          width: 160,
-                          height: 50,
-                          justifyContent: "space-evenly",
-                          alignItems: "center",
-                          backgroundColor: "#2263a5",
-                          borderLeftWidth: 1,
-                          borderColor: "#f1f8ff",
-                        }}
-                      >
-                        <Typography
-                          sx={{
-                            color: "white",
-                            fontWeight: "bold",
-                            fontSize: 10,
-                          }}
-                        >
-                          Name
-                        </Typography>
-                      </Stack>
-                      <Stack
-                        sx={{
-                          width: 70,
-                          height: 50,
-                          justifyContent: "space-evenly",
-                          alignItems: "center",
-                          backgroundColor: "#2263a5",
-                          borderLeftWidth: 1,
-                          borderColor: "#f1f8ff",
-                        }}
-                      >
-                        <Typography
-                          sx={{
-                            color: "white",
-                            fontWeight: "bold",
-                            fontSize: 10,
-                          }}
-                        >
-                          Quantity
-                        </Typography>
-                      </Stack>
-                      <Stack
-                        sx={{
-                          width: 70,
-                          height: 50,
-                          justifyContent: "space-evenly",
-                          alignItems: "center",
-                          backgroundColor: "#2263a5",
-                          borderLeftWidth: 1,
-                          borderColor: "#f1f8ff",
-                        }}
-                      >
-                        <Typography
-                          sx={{
-                            color: "white",
-                            fontWeight: "bold",
-                            fontSize: 10,
-                          }}
-                        >
-                          Subtotal
-                        </Typography>
-                      </Stack>
-                    </Stack>
-
-                    {/* Product list that does not accept Commission */}
-                    {products
-                      .filter((item) => item?.acceptCommission !== true)
-                      .map((item) => (
-                        <Stack key={item?.id}>
-                          <Stack
-                            sx={{
-                              flexDirection: "row",
-                              borderBottomWidth: 1,
-                              borderColor: "black",
-                            }}
-                          >
-                            <Stack
-                              sx={{
-                                borderLeftWidth: 1,
-                                borderColor: "#ffffff",
-                                width: 70,
-                                height: 50,
-                                justifyContent: "space-evenly",
-                                alignItems: "center",
-                                backgroundColor: "#f1f8ff",
-                              }}
-                            >
-                              <Typography style={{ color: "red" }}>
-                                {item?.price}
-                              </Typography>
-                            </Stack>
-                            <Stack
-                              sx={{
-                                borderLeftWidth: 1,
-                                borderColor: "#ffffff",
-                                width: 160,
-                                height: 50,
-                                justifyContent: "space-evenly",
-                                alignItems: "center",
-                                backgroundColor: "#f1f8ff",
-                              }}
-                            >
-                              <Typography
-                                sx={{
-                                  width: "100%",
-                                  textOverflow: "ellipsis",
-                                  whiteSpace: "nowrap",
-                                  overflow: "hidden",
-                                  textAlign: "center",
-                                }}
-                              >
-                                {item?.name}
-                              </Typography>
-                            </Stack>
-                            <Stack
-                              sx={{
-                                width: 70,
-                                height: 50,
-                                backgroundColor: "#f1f8ff",
-                              }}
-                            >
-                              <TextField
-                                fullWidth
-                                size="small"
-                                margin="dense"
-                                sx={{
-                                  backgroundColor: "#dddfff",
-                                }}
-                                f
-                                placeholder="0"
-                                onChange={(e) =>
-                                  handleQuantity2(
-                                    e.target.value,
-                                    item?.price,
-                                    item?.id
-                                  )
-                                }
-                              />
-                            </Stack>
-                            <Stack
-                              sx={{
-                                borderLeftWidth: 1,
-                                borderColor: "#ffffff",
-                                width: 70,
-                                height: 50,
-                                justifyContent: "space-evenly",
-                                alignItems: "center",
-                                backgroundColor: "#f1f8ff",
-                              }}
-                            >
-                              <Typography>{subtotal2[item?.id]}৳</Typography>
-                            </Stack>
-                          </Stack>
-                        </Stack>
-                      ))}
+                      />
+                    </Box>
 
                     {/* Result of Product that doesnt accept commission */}
                     <Stack
@@ -1339,6 +1191,7 @@ const EntryForm = () => {
 
       {/* Display AddProduct success message or error */}
       <Snackbar
+        // anchorOrigin={{ vertical: "top", horizontal: "right" }}
         open={Boolean(response)}
         autoHideDuration={4000}
         onClose={() => setResponse(false)}

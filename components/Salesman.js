@@ -34,7 +34,12 @@ import {
   GridToolbarDensitySelector,
   GridToolbarFilterButton,
 } from "@mui/x-data-grid";
-import { deleteProduct, getOrderData, getProductData } from "../redux/apiCalls";
+import {
+  deleteProduct,
+  getOrderData,
+  getProductData,
+  getSalesmanData,
+} from "../redux/apiCalls";
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
@@ -48,18 +53,18 @@ function QuickToolbar(props) {
     </div>
   );
 }
-const Orders = () => {
+const Salesman = () => {
   const user = useSelector((state) => state.user.currentUser);
-  const [orders, setOrders] = useState([]);
+  const [salesman, setSalesman] = useState([]);
 
   useEffect(() => {
-    getOrderData(user.uid).then((res) => {
-      setOrders(res);
+    getSalesmanData(user.uid).then((res) => {
+      console.log(res);
+      res.status === 200 && setSalesman(res.data);
     });
   }, []);
 
-  console.log(orders);
-  const [deleteOrderId, setDeleteOrderId] = useState(false);
+  console.log(Salesman);
   const [response, setResponse] = useState(false);
 
   const handleDelete = () => {
@@ -76,77 +81,39 @@ const Orders = () => {
 
   const columns = [
     {
-      field: "entryNo",
+      field: "salesmanUid",
       headerClassName: "super-app-theme--header",
-      headerName: "Entry No",
+      headerName: "ID",
       width: 200,
-      editable: true,
+      editable: false,
     },
     {
-      field: "customerName",
-      headerName: "Customer",
+      field: "name",
+      headerName: "Name",
       headerClassName: "super-app-theme--header",
       width: 150,
-      editable: true,
+      editable: false,
     },
     {
-      field: "customerContact",
-      headerName: "Contact",
+      field: "email",
+      headerName: "Email",
       headerClassName: "super-app-theme--header",
-      width: 150,
-      editable: true,
-    },
-    {
-      field: "finalReserve",
-      headerName: "Final Reserve",
-      headerClassName: "super-app-theme--header",
-      width: 150,
-      editable: true,
-    },
-    {
-      field: "preparedBy",
-      headerName: "Prepared By",
-      headerClassName: "super-app-theme--header",
-      width: 150,
-      editable: true,
+      width: 200,
+      editable: false,
     },
     {
       field: "createdAt",
       headerName: "Created At",
       headerClassName: "super-app-theme--header",
       width: 250,
-      editable: true,
+      editable: false,
     },
     {
-      field: "action",
-      headerName: "Action",
+      field: "lastLoginAt",
+      headerName: "Last Login",
       headerClassName: "super-app-theme--header",
-      width: 150,
-      renderCell: (params) => {
-        return (
-          <Stack direction="row" alignItems="center" sx={{ gap: 2 }}>
-            <Link
-              href={`/products/edit/${params.row.id}`}
-              underline="none"
-              color="inherit"
-            >
-              <IconButton aria-label="edit">
-                <Tooltip title="Edit">
-                  <Edit />
-                </Tooltip>
-              </IconButton>
-            </Link>
-            <IconButton
-              aria-label="delete"
-              // onClick={() => setDeleteProductId(params.row.id)}
-            >
-              <Tooltip title="Delete">
-                <DeleteOutlined />
-              </Tooltip>
-            </IconButton>
-          </Stack>
-        );
-      },
+      width: 250,
+      editable: false,
     },
   ];
 
@@ -163,10 +130,15 @@ const Orders = () => {
           alignItems="center"
           sx={{ p: 1, backgroundColor: "#83cee0", color: "white" }}
         >
-          <Typography>List of Orders</Typography>
+          <Typography>Your Salesmen</Typography>
+          <Link href="/salesman/add/">
+            <Tooltip title="Add Salesman">
+              <AddCircle fontSize="large" />
+            </Tooltip>
+          </Link>
         </Stack>
 
-        {orders.length === 0 ? (
+        {salesman.length === 0 ? (
           <Typography
             sx={{
               color: "red",
@@ -175,13 +147,13 @@ const Orders = () => {
               padding: 20,
             }}
           >
-            No order added yet.
+            No salesman added yet.
           </Typography>
         ) : (
           <DataGrid
             components={{ Toolbar: QuickToolbar }}
-            rows={orders}
-            getRowId={(row) => row.entryNo}
+            rows={salesman}
+            getRowId={(row) => row.salesmanUid}
             columns={columns}
             pageSize={5}
             rowsPerPageOptions={[5]}
@@ -236,4 +208,4 @@ const Orders = () => {
   );
 };
 
-export default Orders;
+export default Salesman;

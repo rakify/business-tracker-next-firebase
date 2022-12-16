@@ -184,6 +184,25 @@ export const getProductData = async (dispatch, uid) => {
     dispatch(getProductFailure());
   }
 };
+//Salesman
+export const getSalesmanData = async (uid) => {
+  try {
+    const q = query(
+      collection(db, "users"),
+      where("uid", "==", uid),
+      where("accountType", "==", "Salesman")
+    );
+    const querySnapshot = await getDocs(q);
+    let salesmen = [];
+    querySnapshot.forEach((doc) => {
+      salesmen.push(doc.data());
+    });
+    return { status: 200, data: salesmen };
+  } catch (err) {
+    console.log(err);
+    return err;
+  }
+};
 
 // Orders
 export const addOrder = async (order) => {
@@ -196,13 +215,12 @@ export const addOrder = async (order) => {
 };
 export const getOrderData = async (uid) => {
   try {
-    const q = query(collection(db, "orders"), where("uid", "==", uid));
+    const q = query(collection(db, "orders"), where("seller", "==", uid));
     const querySnapshot = await getDocs(q);
     let orders = [];
     querySnapshot.forEach((doc) => {
       orders.push(doc.data());
     });
-    console.log(orders)
     return orders;
   } catch (err) {
     console.log(err);

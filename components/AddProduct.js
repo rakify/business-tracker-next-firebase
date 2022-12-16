@@ -64,6 +64,7 @@ const AddProduct = () => {
         note: inputs.note,
         stock: parseInt(inputs.stock),
         acceptCommission: Boolean(checked),
+        createdAt: new Date().toLocaleString("en-us"),
       };
 
       addProduct(dispatch, newProduct).then((res) => setResponse(res));
