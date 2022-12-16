@@ -374,6 +374,14 @@ const EntryForm = () => {
   ];
 
   const handleOrder = async () => {
+    // remove unnecessary object keys containing value 0
+    Object.keys(quantity).forEach(
+      (k) => quantity[k] == 0 && delete quantity[k] && delete subtotal[k]
+    );
+    Object.keys(quantity2).forEach(
+      (k) => quantity2[k] == 0 && delete quantity2[k] && delete subtotal2[k]
+    );
+
     if (inputs.customerName === "")
       setResponse({ type: "error", message: "Please enter customer name." });
     else if (inputs.customerContact === "")
@@ -381,7 +389,13 @@ const EntryForm = () => {
         type: "error",
         message: "Please enter customer contact information.",
       });
-    else {
+    else if (!quantity.length || !quantity2.length) {
+      setResponse({
+        type: "warning",
+        message:
+          "You are trying to place an empty order. Order must contain at least one product.",
+      });
+    } else {
       setLoading(true);
       // if seller himself prepares the order give his username else salesman name
       let preparedBy = "",
@@ -393,14 +407,6 @@ const EntryForm = () => {
         preparedBy = user.name;
         preparedById = user.salesmanUid;
       }
-
-      // remove unnecessary object keys containing value 0
-      Object.keys(quantity).forEach(
-        (k) => quantity[k] == 0 && delete quantity[k] && delete subtotal[k]
-      );
-      Object.keys(quantity2).forEach(
-        (k) => quantity2[k] == 0 && delete quantity2[k] && delete subtotal2[k]
-      );
 
       //prepare order
       const order = {
@@ -1272,7 +1278,7 @@ const EntryForm = () => {
           {response?.message}
         </Alert>
       </Snackbar>
-      
+
       {/* Display Quantity validation message */}
       <Snackbar
         anchorOrigin={{ vertical: "top", horizontal: "center" }}
