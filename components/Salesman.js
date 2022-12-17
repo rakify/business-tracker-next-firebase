@@ -137,7 +137,7 @@ const Salesman = () => {
               onClick={() => setDeleteUserUid(params.row.salesmanUid)}
             >
               <Tooltip title="Disable Salesman">
-                <BlockRounded />
+                <BlockRounded sx={{ color: "red" }} />
               </Tooltip>
             </IconButton>
           </Stack>
@@ -149,7 +149,7 @@ const Salesman = () => {
   return (
     <>
       <Container
-        maxWidth="lg"
+        maxWidth="xl"
         sx={{ backgroundColor: "whitesmoke", mt: 1 }}
         disableGutters
       >

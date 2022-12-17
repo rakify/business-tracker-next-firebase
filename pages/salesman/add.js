@@ -7,7 +7,7 @@ export default function AddSalesmanIndex() {
   return (
     <>
       <Head>
-        <title>Register - Business Tracker</title>
+        <title>Add Salesman - Business Tracker</title>
         <meta
           name="description"
           content="Business tracker is a web application for business people to record and to calculate their sells faster"
