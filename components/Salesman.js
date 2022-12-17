@@ -16,12 +16,14 @@ import {
   DialogContentText,
   DialogActions,
   TextField,
+  Box,
 } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import AddProduct from "../pages/products/add";
 import {
   Add,
   AddCircle,
+  BlockRounded,
   Clear,
   Close,
   DeleteOutlined,
@@ -36,10 +38,12 @@ import {
 } from "@mui/x-data-grid";
 import {
   deleteProduct,
+  deleteUser,
   getOrderData,
   getProductData,
   getSalesmanData,
 } from "../redux/apiCalls";
+import QuickSearchToolbar from "../utils/QuickSearchToolbar";
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
@@ -56,6 +60,7 @@ function QuickToolbar(props) {
 const Salesman = () => {
   const user = useSelector((state) => state.user.currentUser);
   const [salesman, setSalesman] = useState([]);
+  const [deleteUserUid, setDeleteUserUid] = useState(false);
 
   useEffect(() => {
     getSalesmanData(user.uid).then((res) => {
@@ -68,23 +73,27 @@ const Salesman = () => {
   const [response, setResponse] = useState(false);
 
   const handleDelete = () => {
-    setDeleteOrderId(false);
-    // deleteOrder(dispatch, deleteOrderId).then((res) => {
-    //   res.type === "success" && getOrderData(dispatch, user.uid);
-    //   setResponse(res);
-    // });
+    setDeleteUserUid(false);
+    deleteUser(deleteUserUid).then((res) => {
+      setResponse(res);
+      res.type === "success" &&
+        getSalesmanData(user.uid).then((res) => {
+          console.log(res);
+          res.status === 200 && setSalesman(res.data);
+        });
+    });
   };
 
-  // const handleCloseDialog = () => {
-  //   setDeleteProductId(false);
-  // };
+  const handleCloseDialog = () => {
+    setDeleteUserUid(false);
+  };
 
   const columns = [
     {
-      field: "salesmanUid",
+      field: "createdAt",
+      headerName: "Created At",
       headerClassName: "super-app-theme--header",
-      headerName: "ID",
-      width: 200,
+      width: 250,
       editable: false,
     },
     {
@@ -102,10 +111,10 @@ const Salesman = () => {
       editable: false,
     },
     {
-      field: "createdAt",
-      headerName: "Created At",
+      field: "phoneNumber",
+      headerName: "Phone",
       headerClassName: "super-app-theme--header",
-      width: 250,
+      width: 200,
       editable: false,
     },
     {
@@ -114,6 +123,26 @@ const Salesman = () => {
       headerClassName: "super-app-theme--header",
       width: 250,
       editable: false,
+    },
+    {
+      field: "action",
+      headerName: "Action",
+      headerClassName: "super-app-theme--header",
+      width: 150,
+      renderCell: (params) => {
+        return (
+          <Stack direction="row" alignItems="center" sx={{ gap: 2 }}>
+            <IconButton
+              aria-label="delete"
+              onClick={() => setDeleteUserUid(params.row.salesmanUid)}
+            >
+              <Tooltip title="Disable Salesman">
+                <BlockRounded />
+              </Tooltip>
+            </IconButton>
+          </Stack>
+        );
+      },
     },
   ];
 
@@ -150,42 +179,56 @@ const Salesman = () => {
             No salesman added yet.
           </Typography>
         ) : (
-          <DataGrid
-            components={{ Toolbar: QuickToolbar }}
-            rows={salesman}
-            getRowId={(row) => row.salesmanUid}
-            columns={columns}
-            pageSize={5}
-            rowsPerPageOptions={[5]}
-            disableSelectionOnClick
-            density="comfortable"
-            sx={{ height: 500 }}
-            initialState={{
-              sorting: {
-                sortModel: [{ field: "createdAt", sort: "desc" }],
+          <Box
+            sx={{
+              height: 500,
+              width: "100%",
+              "& .super-app-theme--header": {
+                backgroundColor: "#2263a5",
+                borderLeftWidth: 1,
+                borderColor: "#f1f8ff",
+                color: "white",
+                height: "50px !important",
               },
             }}
-          />
+          >
+            <DataGrid
+              components={{ Toolbar: QuickSearchToolbar }}
+              rows={salesman}
+              getRowId={(row) => row.salesmanUid}
+              columns={columns}
+              pageSize={5}
+              rowsPerPageOptions={[5]}
+              disableSelectionOnClick
+              density="comfortable"
+              sx={{ height: 500 }}
+              initialState={{
+                sorting: {
+                  sortModel: [{ field: "createdAt", sort: "desc" }],
+                },
+              }}
+            />
+          </Box>
         )}
 
         {/* Confirm Delete */}
         <Dialog
-          open={Boolean(false)}
+          open={Boolean(deleteUserUid)}
           TransitionComponent={Transition}
           keepMounted
-          // onClose={handleCloseDialog}
+          onClose={handleCloseDialog}
           aria-describedby="alert-dialog-slide-description"
         >
           <DialogTitle>{"Confirm Delete"}</DialogTitle>
           <DialogContent>
             <DialogContentText id="alert-dialog-slide-description">
-              If you proceed now product with ID 1 will be erased. This action
-              is irreversible.
+              If you proceed now salesman with ID {deleteUserUid} will be
+              erased. This action is irreversible.
             </DialogContentText>
           </DialogContent>
           <DialogActions>
             <Button>Cancel</Button>
-            <Button onClick={() => handleDelete(1)}>Proceed</Button>
+            <Button onClick={() => handleDelete(deleteUserUid)}>Proceed</Button>
           </DialogActions>
         </Dialog>
 

@@ -3,6 +3,7 @@ import Login from "../login";
 import Orders from "../../components/Orders";
 import { useSelector } from "react-redux";
 import Head from "next/head";
+import { getOrderData } from "../../redux/apiCalls";
 
 const OrdersIndex = () => {
   const user = useSelector((state) => state.user.currentUser);

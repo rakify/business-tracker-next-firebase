@@ -15,6 +15,7 @@ import {
   Slide,
   DialogContentText,
   DialogActions,
+  Box,
 } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import AddProduct from "../pages/products/add";
@@ -42,8 +43,6 @@ const Products = () => {
     getProductData(dispatch, user.uid);
   }, [dispatch, user]);
 
-  const [editProduct, setEditProduct] = useState();
-  const [editProductPosition, setEditProductPosition] = useState();
   const [deleteProductId, setDeleteProductId] = useState(false);
   const [response, setResponse] = useState(false);
 
@@ -61,61 +60,46 @@ const Products = () => {
 
   const columns = [
     {
+      field: "createdAt",
+      headerName: "Created At",
+      headerClassName: "super-app-theme--header",
+      width: 200,
+      editable: false,
+    },
+    {
       field: "id",
       headerClassName: "super-app-theme--header",
-      headerName: "Product ID",
+      headerName: "ID",
       width: 200,
-      editable: true,
+      editable: false,
     },
     {
       field: "name",
-      headerName: "Product",
+      headerName: "Name",
       headerClassName: "super-app-theme--header",
       width: 300,
-      editable: true,
-      // renderCell: (params) => {
-      //   return (
-      //     <Stack direction="row" alignItems="center" sx={{ gap: 2 }}>
-      //       <Avatar src={params.row.img} alt="" />
-      //       <Typography>{params.row.title}</Typography>
-      //     </Stack>
-      //   );
-      // },
+      editable: false,
     },
     {
       field: "price",
       headerName: "Price",
       headerClassName: "super-app-theme--header",
       width: 150,
-      editable: true,
+      editable: false,
     },
     {
       field: "stock",
       headerName: "Stock",
       headerClassName: "super-app-theme--header",
       width: 150,
-      editable: true,
+      editable: false,
     },
     {
       field: "acceptCommission",
       headerName: "Commission",
       headerClassName: "super-app-theme--header",
       width: 150,
-      editable: true,
-    },
-    {
-      field: "unit",
-      headerName: "Unit",
-      headerClassName: "super-app-theme--header",
-      width: 200,
-      editable: true,
-    },
-    {
-      field: "createdAt",
-      headerName: "Created At",
-      headerClassName: "super-app-theme--header",
-      width: 200,
-      editable: true,
+      editable: false,
     },
     {
       field: "action",
@@ -183,21 +167,35 @@ const Products = () => {
             No product added yet.
           </Typography>
         ) : (
-          <DataGrid
-            rows={products}
-            getRowId={(row) => row.id}
-            columns={columns}
-            pageSize={5}
-            rowsPerPageOptions={[5]}
-            disableSelectionOnClick
-            density="comfortable"
-            sx={{ height: 500 }}
-            initialState={{
-              sorting: {
-                sortModel: [{ field: "createdAt", sort: "desc" }],
+          <Box
+            sx={{
+              height: 500,
+              width: "100%",
+              "& .super-app-theme--header": {
+                backgroundColor: "#2263a5",
+                borderLeftWidth: 1,
+                borderColor: "#f1f8ff",
+                color: "white",
+                height: "50px !important",
               },
             }}
-          />
+          >
+            <DataGrid
+              rows={products}
+              getRowId={(row) => row.id}
+              columns={columns}
+              pageSize={5}
+              rowsPerPageOptions={[5]}
+              disableSelectionOnClick
+              density="comfortable"
+              sx={{ height: 500 }}
+              initialState={{
+                sorting: {
+                  sortModel: [{ field: "createdAt", sort: "desc" }],
+                },
+              }}
+            />
+          </Box>
         )}
 
         {/* Confirm Delete */}

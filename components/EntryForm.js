@@ -4,7 +4,6 @@ import {
   LocalPhoneRounded,
 } from "@mui/icons-material";
 import {
-  Container,
   Typography,
   Stack,
   TextField,
@@ -13,9 +12,8 @@ import {
   Snackbar,
   Alert,
   Box,
-  FormControl,
 } from "@mui/material";
-import { DataGrid, GridToolbarQuickFilter } from "@mui/x-data-grid";
+import { DataGrid } from "@mui/x-data-grid";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -23,58 +21,31 @@ import {
   addOrder,
   getOrderData,
   getProductData,
-  updateProduct,
   updateProductQuantity,
 } from "../redux/apiCalls";
+import QuickSearchToolbar from "../utils/QuickSearchToolbar";
 
-function QuickSearchToolbar() {
-  return (
-    <Box
-      sx={{
-        p: 0.5,
-        pb: 0,
-      }}
-    >
-      <GridToolbarQuickFilter
-        quickFilterParser={(searchInput) =>
-          searchInput.split(",").map((value) => value.trim())
-        }
-        quickFilterFormatter={(quickFilterValues) =>
-          quickFilterValues.join(", ")
-        }
-        debounceMs={200} // time before applying the new quick filter value
-      />
-    </Box>
-  );
-}
 const EntryForm = () => {
-  const dispatch = useDispatch();
   const user = useSelector((state) => state.user.currentUser);
   const products = useSelector((state) => state.product.products);
-  const [productWithCommission, setProductWithCommission] = useState([]);
-  const [productWithoutCommission, setProductWithoutCommission] = useState([]);
+  const productWithCommission = useSelector(
+    (state) => state.product.productWithCommission
+  );
+  const productWithoutCommission = useSelector(
+    (state) => state.product.productWithoutCommission
+  );
   const [response, setResponse] = useState(false);
   const [loading, setLoading] = useState(false);
   const [validation, setValidation] = useState(false);
+  const dispatch = useDispatch();
 
   useEffect(() => {
-    getProductData(dispatch, user.uid);
-    let productWithoutCommission = [];
-    if (products.length)
-      productWithoutCommission = products?.filter(
-        (item) => item?.acceptCommission !== true
-      );
-    setProductWithoutCommission(productWithoutCommission);
-    let productWithCommission = [];
-    if (products.length)
-      productWithCommission = products?.filter(
-        (item) => item?.acceptCommission === true
-      );
-    setProductWithCommission(productWithCommission);
-
-    getOrderData(user.uid).then((res) => {
+    const setUp = async () => {
+      await getProductData(dispatch, user.uid);
+      const res = await getOrderData(user.uid);
       setInputs((prev) => ({ ...prev, entryNo: res.length + 1 }));
-    });
+    };
+    setUp();
   }, []);
 
   const weekday = new Date().toLocaleString("en-us", {
@@ -627,6 +598,7 @@ const EntryForm = () => {
                       }}
                     >
                       <DataGrid
+                        loading={loading}
                         components={{ Toolbar: QuickSearchToolbar }}
                         rows={productWithCommission}
                         getRowId={(row) => row.id}

@@ -4,6 +4,8 @@ const productSlice = createSlice({
   name: "product",
   initialState: {
     products: [],
+    productWithCommission: [],
+    productWithoutCommission: [],
     isFetching: false,
     error: false,
   },
@@ -11,6 +13,8 @@ const productSlice = createSlice({
     //Reset
     resetProduct: (state) => {
       state.products = [];
+      state.productWithCommission = [];
+      state.productWithoutCommission = [];
       state.isFetching = false;
       state.error = false;
     },
@@ -22,10 +26,18 @@ const productSlice = createSlice({
     getProductSuccess: (state, action) => {
       state.isFetching = false;
       state.products = action.payload;
+      state.productWithCommission = state.products.filter(
+        (item) => item?.acceptCommission === true
+      );
+      state.productWithoutCommission = state.products.filter(
+        (item) => item?.acceptCommission === false
+      );
     },
     getProductFailure: (state) => {
       state.isFetching = false;
       state.products = [];
+      state.productWithCommission = [];
+      state.productWithoutCommission = [];
       state.error = true;
     },
     //Delete

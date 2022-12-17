@@ -38,7 +38,11 @@ import {
   updateProductStart,
   updateProductSuccess,
 } from "./productRedux";
-import { sendPasswordResetEmail } from "firebase/auth";
+import {
+  getAuth,
+  sendPasswordResetEmail,
+  signInWithEmailAndPassword,
+} from "firebase/auth";
 
 //Admin
 export const getAllUsers = async () => {
@@ -117,8 +121,8 @@ export const updateProductQuantity = async (id, value) => {
 export const deleteProduct = async (dispatch, id) => {
   dispatch(deleteProductStart());
   try {
-    const userRef = doc(db, "products", id);
-    const res = await deleteDoc(userRef);
+    const productRef = doc(db, "products", id);
+    await deleteDoc(productRef);
     dispatch(deleteProductSuccess(id));
     return {
       type: "success",
@@ -144,17 +148,6 @@ export const addUserData = async (userInfo) => {
     };
   } catch (err) {
     console.log(err);
-    return { type: "error", message: err };
-  }
-};
-export const addSalesmanData = async (userInfo) => {
-  try {
-    await setDoc(doc(db, "users", userInfo.salesmanUid), userInfo);
-    return {
-      type: "success",
-      message: "New  salesman account created successfully.",
-    };
-  } catch (err) {
     return { type: "error", message: err };
   }
 };
@@ -186,6 +179,20 @@ export const updateUser = async (dispatch, uid, userInfo) => {
     };
   }
 };
+//delete
+export const deleteUser = async (uid) => {
+  try {
+    const userRef = doc(db, "users", uid);
+    await deleteDoc(userRef);
+    return { type: "success", message: "Successfully deleted user." };
+  } catch (err) {
+    console.log("Error deleting user:", err);
+    return {
+      type: "error",
+      message: err.message,
+    };
+  }
+};
 //Products
 export const getProductData = async (dispatch, uid) => {
   dispatch(getProductStart());
@@ -203,6 +210,18 @@ export const getProductData = async (dispatch, uid) => {
   }
 };
 //Salesman
+export const addSalesmanData = async (userInfo) => {
+  try {
+    await setDoc(doc(db, "users", userInfo.salesmanUid), userInfo);
+    return {
+      type: "success",
+      message: "New  salesman account created successfully.",
+    };
+  } catch (err) {
+    return { type: "error", message: err };
+  }
+};
+
 export const getSalesmanData = async (uid) => {
   try {
     const q = query(
@@ -247,6 +266,30 @@ export const getOrderData = async (uid) => {
 };
 
 // All
+export const login = async (dispatch, email, password) => {
+  try {
+    const userCredential = await signInWithEmailAndPassword(
+      auth,
+      email,
+      password
+    );
+    await getUserData(dispatch, userCredential.user.uid);
+
+    return { type: "success", message: "Logged In Successfully." };
+  } catch (error) {
+    return {
+      type: "error",
+      message:
+        error.code === "auth/invalid-email"
+          ? "Invalid email."
+          : error.code === "auth/user-not-found"
+          ? "User not found."
+          : error.code === "auth/wrong-password"
+          ? "Wrong password."
+          : "Network error.",
+    };
+  }
+};
 export const logout = async (dispatch) => {
   dispatch(logoutStart());
   try {

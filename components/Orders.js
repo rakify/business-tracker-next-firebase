@@ -16,6 +16,7 @@ import {
   DialogContentText,
   DialogActions,
   TextField,
+  Box,
 } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import AddProduct from "../pages/products/add";
@@ -35,26 +36,22 @@ import {
   GridToolbarFilterButton,
 } from "@mui/x-data-grid";
 import { deleteProduct, getOrderData, getProductData } from "../redux/apiCalls";
+import QuickSearchToolbar from "../utils/QuickSearchToolbar";
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
-function QuickToolbar(props) {
-  return (
-    <div>
-      <GridToolbarFilterButton />
-      <GridToolbarDensitySelector />
-    </div>
-  );
-}
 const Orders = () => {
   const user = useSelector((state) => state.user.currentUser);
   const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    setLoading(true);
     getOrderData(user.uid).then((res) => {
       setOrders(res);
+      setLoading(false);
     });
   }, []);
 
@@ -75,46 +72,46 @@ const Orders = () => {
 
   const columns = [
     {
+      field: "createdAt",
+      headerName: "Created At",
+      headerClassName: "super-app-theme--header",
+      width: 180,
+      editable: false,
+    },
+    {
       field: "entryNo",
       headerClassName: "super-app-theme--header",
-      headerName: "Entry No",
-      width: 200,
-      editable: true,
+      headerName: "No.",
+      width: 50,
+      editable: false,
     },
     {
       field: "customerName",
       headerName: "Customer",
       headerClassName: "super-app-theme--header",
       width: 150,
-      editable: true,
+      editable: false,
     },
     {
       field: "customerContact",
       headerName: "Contact",
       headerClassName: "super-app-theme--header",
       width: 150,
-      editable: true,
+      editable: false,
     },
     {
       field: "finalReserve",
       headerName: "Final Reserve",
       headerClassName: "super-app-theme--header",
       width: 150,
-      editable: true,
+      editable: false,
     },
     {
       field: "preparedBy",
       headerName: "Prepared By",
       headerClassName: "super-app-theme--header",
       width: 150,
-      editable: true,
-    },
-    {
-      field: "createdAt",
-      headerName: "Created At",
-      headerClassName: "super-app-theme--header",
-      width: 250,
-      editable: true,
+      editable: false,
     },
     {
       field: "action",
@@ -124,17 +121,6 @@ const Orders = () => {
       renderCell: (params) => {
         return (
           <Stack direction="row" alignItems="center" sx={{ gap: 2 }}>
-            <Link
-              href={`/products/edit/${params.row.id}`}
-              underline="none"
-              color="inherit"
-            >
-              <IconButton aria-label="edit">
-                <Tooltip title="Edit">
-                  <Edit />
-                </Tooltip>
-              </IconButton>
-            </Link>
             <IconButton
               aria-label="delete"
               // onClick={() => setDeleteProductId(params.row.id)}
@@ -152,7 +138,7 @@ const Orders = () => {
   return (
     <>
       <Container
-        maxWidth="lg"
+        maxWidth="xl"
         sx={{ backgroundColor: "whitesmoke", mt: 1 }}
         disableGutters
       >
@@ -164,22 +150,22 @@ const Orders = () => {
         >
           <Typography>List of Orders</Typography>
         </Stack>
-
-        {orders && orders.length === 0 ? (
-          <Typography
-            sx={{
-              color: "red",
-              fontSize: 20,
-              backgroundColor: "whitesmoke",
-              padding: 20,
-            }}
-          >
-            No order added yet.
-          </Typography>
-        ) : (
+        <Box
+          sx={{
+            height: 500,
+            width: "100%",
+            "& .super-app-theme--header": {
+              backgroundColor: "#2263a5",
+              borderLeftWidth: 1,
+              borderColor: "#f1f8ff",
+              color: "white",
+              height: "50px !important",
+            },
+          }}
+        >
           <DataGrid
-            loading={orders.length === 0}
-            components={{ Toolbar: QuickToolbar }}
+            loading={loading}
+            components={{ Toolbar: QuickSearchToolbar }}
             rows={orders}
             getRowId={(row) => row.entryNo}
             columns={columns}
@@ -194,7 +180,7 @@ const Orders = () => {
               },
             }}
           />
-        )}
+        </Box>
 
         {/* Confirm Delete */}
         <Dialog

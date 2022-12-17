@@ -19,3 +19,8 @@ export default function Home() {
     </>
   );
 }
+// export async function getServerSideProps(context) {
+//   return {
+//     props: { hi: "hi" }, // will be passed to the page component as props
+//   };
+// }

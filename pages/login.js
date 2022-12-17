@@ -9,7 +9,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useState } from "react";
 import { Alert, Snackbar } from "@mui/material";
 import Link from "next/link";
-import { getProductData, getUserData } from "../redux/apiCalls";
+import { getProductData, getUserData, login } from "../redux/apiCalls";
 import { auth } from "../config/firebase";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { useRouter } from "next/router";
@@ -30,25 +30,10 @@ export default function Login({ from = "" }) {
     else if (password === "")
       setResponse({ type: "warning", message: "Password is required." });
     else {
-      signInWithEmailAndPassword(auth, email, password)
-        .then((credential) => {
-          getUserData(dispatch, credential.user.uid);
-          setResponse({ type: "success", message: "Logged In Successfully." });
-          from === "" && router.push("/");
-        })
-        .catch((error) => {
-          setResponse({
-            type: "error",
-            message:
-              error.code === "auth/invalid-email"
-                ? "Invalid email."
-                : error.code === "auth/user-not-found"
-                ? "User not found."
-                : error.code === "auth/wrong-password"
-                ? "Wrong password."
-                : "Network error.",
-          });
-        });
+      login(dispatch, email, password).then((res) => {
+        setResponse(res);
+        res.type === "success" && from === "" && router.push("/");
+      });
     }
   };
 

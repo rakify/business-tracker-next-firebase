@@ -4,7 +4,16 @@ import Typography from "@mui/material/Typography";
 import Container from "@mui/material/Container";
 import { useSelector } from "react-redux";
 import { useState } from "react";
-import { Alert, FormControl, FormHelperText, Input, InputLabel, Snackbar, Stack, Tooltip } from "@mui/material";
+import {
+  Alert,
+  FormControl,
+  FormHelperText,
+  Input,
+  InputLabel,
+  Snackbar,
+  Stack,
+  Tooltip,
+} from "@mui/material";
 import Link from "next/link";
 import { addSalesmanData } from "../redux/apiCalls";
 import { auth } from "../config/firebase";
@@ -27,41 +36,39 @@ export default function AddSalesman() {
     });
   };
 
-  const handleSubmit = async (event) => {
+  const handleSubmit = (event) => {
     event.preventDefault();
-    try {
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
-      const userInfo = {
-        uid: user.uid, // Seller uid
-        username: user.username, // Seller username
-        salesmanUid: userCredential.user.uid, // Salesman uid
-        phoneNumber,
-        createdAt: userCredential.user.metadata.creationTime,
-        lastLoginAt: userCredential.user.metadata.lastSignInTime,
-        ...inputs,
-        approved: true,
-        accountType: "Salesman",
-      };
-      const res = await addSalesmanData(userInfo);
-      setResponse(res);
-    } catch (error) {
-      console.log(error);
-      setResponse({
-        type: "error",
-        message:
-          error.code === "auth/invalid-email"
-            ? "Invalid email."
-            : error.code === "auth/email-already-in-use"
-            ? "This email is already in use."
-            : error.code === "auth/weak-password"
-            ? "Password must contain at least 6 characters."
-            : "Network error.",
+    createUserWithEmailAndPassword(auth, email, password)
+      .then((userCredential) => {
+        const userInfo = {
+          uid: user.uid, // Seller uid
+          username: user.username, // Seller username
+          salesmanUid: userCredential.user.uid, // Salesman uid
+          phoneNumber,
+          createdAt: userCredential.user.metadata.creationTime,
+          lastLoginAt: userCredential.user.metadata.lastSignInTime,
+          ...inputs,
+          approved: true,
+          accountType: "Salesman",
+        };
+        addSalesmanData(userInfo).then((res) => {
+          setResponse(res);
+        });
+      })
+      .catch((error) => {
+        console.log(error);
+        setResponse({
+          type: "error",
+          message:
+            error.code === "auth/invalid-email"
+              ? "Invalid email."
+              : error.code === "auth/email-already-in-use"
+              ? "This email is already in use."
+              : error.code === "auth/weak-password"
+              ? "Password must contain at least 6 characters."
+              : "Network error.",
+        });
       });
-    }
   };
 
   return (
@@ -84,7 +91,7 @@ export default function AddSalesman() {
         </Link>
       </Stack>
 
-      <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
+      <Box component="form" onSubmit={(e) => handleSubmit(e)} sx={{ mt: 1 }}>
         <FormControl fullWidth margin="normal" required focused>
           <InputLabel htmlFor="name">Name</InputLabel>
           <Input
@@ -97,7 +104,6 @@ export default function AddSalesman() {
             Name is required.
           </FormHelperText>
         </FormControl>
-
         <FormControl
           margin="normal"
           fullWidth
@@ -115,7 +121,6 @@ export default function AddSalesman() {
             Email is required.
           </FormHelperText>
         </FormControl>
-
         <FormControl margin="normal" fullWidth>
           <InputLabel htmlFor="phoneNumber">Phone Number</InputLabel>
           <Input
@@ -128,7 +133,6 @@ export default function AddSalesman() {
             Phone Number is optional.
           </FormHelperText>
         </FormControl>
-
         <FormControl margin="normal" fullWidth>
           <InputLabel htmlFor="password">Password</InputLabel>
           <Input
@@ -145,22 +149,21 @@ export default function AddSalesman() {
         <Button type="submit" fullWidth variant="contained">
           Add Salesman
         </Button>
-      </Box>
-
-      {/* Display AddProduct success message or error */}
-      <Snackbar
-        open={Boolean(response)}
-        autoHideDuration={4000}
-        onClose={() => setResponse(false)}
-      >
-        <Alert
+        {/* Display AddProduct success message or error */}
+        <Snackbar
+          open={Boolean(response)}
+          autoHideDuration={4000}
           onClose={() => setResponse(false)}
-          severity={response?.type}
-          sx={{ width: "100%" }}
         >
-          {response?.message}
-        </Alert>
-      </Snackbar>
+          <Alert
+            onClose={() => setResponse(false)}
+            severity={response?.type}
+            sx={{ width: "100%" }}
+          >
+            {response?.message}
+          </Alert>
+        </Snackbar>{" "}
+      </Box>
     </Container>
   );
 }
