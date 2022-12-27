@@ -100,11 +100,11 @@ export const updateProduct = async (dispatch, id, product) => {
     };
   }
 };
-export const updateProductQuantity = async (id, value) => {
+export const updateProductQuantity = async (id, value, type) => {
   try {
     // Atomically decrement the stock of the product by given value.
     await updateDoc(doc(db, "products", id), {
-      stock: increment(-value),
+      stock: type === "dec" ? increment(-value) : increment(value),
     });
     return {
       type: "success",
@@ -242,12 +242,32 @@ export const getSalesmanData = async (uid) => {
 };
 
 // Orders
-export const addOrder = async (order) => {
+export const addOrder = async (orderInfo) => {
   try {
-    const docRef = await addDoc(collection(db, "orders"), order);
-    console.log(docRef);
+    await setDoc(doc(db, "orders", orderInfo.id), orderInfo);
+    return {
+      type: "success",
+      message: "New order placed.",
+    };
   } catch (err) {
-    console.log(err);
+    return {
+      type: "error",
+      message: "Failed to order.",
+    };
+  }
+};
+//delete
+export const deleteOrder = async (uid) => {
+  try {
+    const orderRef = doc(db, "orders", uid);
+    await deleteDoc(orderRef);
+    return { type: "success", message: "Successfully deleted order." };
+  } catch (err) {
+    console.log("Error while deleting order:", err);
+    return {
+      type: "error",
+      message: err.message,
+    };
   }
 };
 export const getOrderData = async (uid) => {

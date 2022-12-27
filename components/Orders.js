@@ -27,6 +27,7 @@ import {
   Close,
   DeleteOutlined,
   Edit,
+  EditOutlined,
   Search,
 } from "@mui/icons-material";
 import Link from "next/link";
@@ -35,7 +36,13 @@ import {
   GridToolbarDensitySelector,
   GridToolbarFilterButton,
 } from "@mui/x-data-grid";
-import { deleteProduct, getOrderData, getProductData } from "../redux/apiCalls";
+import {
+  deleteOrder,
+  deleteProduct,
+  getOrderData,
+  getProductData,
+  updateProductQuantity,
+} from "../redux/apiCalls";
 import QuickSearchToolbar from "../utils/QuickSearchToolbar";
 
 const Transition = forwardRef(function Transition(props, ref) {
@@ -46,6 +53,8 @@ const Orders = () => {
   const user = useSelector((state) => state.user.currentUser);
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [deleteOrderInfo, setDeleteOrderInfo] = useState(false);
+  const [response, setResponse] = useState(false);
 
   useEffect(() => {
     setLoading(true);
@@ -55,20 +64,53 @@ const Orders = () => {
     });
   }, []);
 
-  const [deleteOrderId, setDeleteOrderId] = useState(false);
-  const [response, setResponse] = useState(false);
+  const handleDelete = async () => {
+    // place order
+    try {
+      setLoading(true);
+      await deleteOrder(deleteOrderInfo.id);
+      //handle stock update
+      for (const key in deleteOrderInfo.quantity) {
+        await updateProductQuantity(
+          key,
+          deleteOrderInfo.quantity[key],
+          "inc"
+        ).then((res) => console.log(res));
+      }
+      for (const key in deleteOrderInfo.quantity2) {
+        await updateProductQuantity(
+          key,
+          deleteOrderInfo.quantity2[key],
+          "inc"
+        ).then((res) => console.log(res));
+      }
 
-  const handleDelete = () => {
-    setDeleteOrderId(false);
-    // deleteOrder(dispatch, deleteOrderId).then((res) => {
-    //   res.type === "success" && getOrderData(dispatch, user.uid);
-    //   setResponse(res);
-    // });
+      await getOrderData(user.uid).then((res) => {
+        setOrders(res);
+      });
+
+      setDeleteOrderInfo(false);
+      const newOrders = await getOrderData(user.uid);
+      setOrders(newOrders);
+
+      setResponse({
+        type: "success",
+        message: "Order deleted successfully.",
+      });
+      setLoading(false);
+    } catch (err) {
+      setDeleteOrderInfo(false);
+      setLoading(false);
+      setResponse({
+        type: "error",
+        message: err.message,
+      });
+    }
   };
 
-  // const handleCloseDialog = () => {
-  //   setDeleteProductId(false);
-  // };
+  const handleCloseDialog = () => {
+    setDeleteOrderInfo(false);
+  };
 
   const columns = [
     {
@@ -123,7 +165,7 @@ const Orders = () => {
           <Stack direction="row" alignItems="center" sx={{ gap: 2 }}>
             <IconButton
               aria-label="delete"
-              // onClick={() => setDeleteProductId(params.row.id)}
+              onClick={() => setDeleteOrderInfo(params.row)}
             >
               <Tooltip title="Delete">
                 <DeleteOutlined />
@@ -164,6 +206,9 @@ const Orders = () => {
           }}
         >
           <DataGrid
+            localeText={{
+              noRowsLabel: "No order has been placed yet.",
+            }}
             loading={loading}
             components={{ Toolbar: QuickSearchToolbar }}
             rows={orders}
@@ -184,22 +229,22 @@ const Orders = () => {
 
         {/* Confirm Delete */}
         <Dialog
-          open={Boolean(false)}
+          open={Boolean(deleteOrderInfo)}
           TransitionComponent={Transition}
           keepMounted
-          // onClose={handleCloseDialog}
+          onClose={handleCloseDialog}
           aria-describedby="alert-dialog-slide-description"
         >
           <DialogTitle>{"Confirm Delete"}</DialogTitle>
           <DialogContent>
             <DialogContentText id="alert-dialog-slide-description">
-              If you proceed now product with ID 1 will be erased. This action
-              is irreversible.
+              If you proceed now order number {deleteOrderInfo.entryNo} will be
+              erased. This action is irreversible.
             </DialogContentText>
           </DialogContent>
           <DialogActions>
-            <Button>Cancel</Button>
-            <Button onClick={() => handleDelete(1)}>Proceed</Button>
+            <Button onClick={() => handleCloseDialog()}>Cancel</Button>
+            <Button onClick={() => handleDelete()}>Proceed</Button>
           </DialogActions>
         </Dialog>
 

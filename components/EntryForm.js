@@ -24,8 +24,10 @@ import {
   updateProductQuantity,
 } from "../redux/apiCalls";
 import QuickSearchToolbar from "../utils/QuickSearchToolbar";
+import { v4 as uuidv4 } from "uuid";
 
-const EntryForm = () => {
+
+const EntryForm = ({order}) => {
   const user = useSelector((state) => state.user.currentUser);
   const products = useSelector((state) => state.product.products);
   const productWithCommission = useSelector(
@@ -389,6 +391,7 @@ const EntryForm = () => {
         createdAt: new Date().toLocaleString("en-us"),
         preparedBy,
         preparedById,
+        id: uuidv4(),
       };
 
       // place order
@@ -401,12 +404,12 @@ const EntryForm = () => {
 
         //handle stock update
         for (const key in quantity) {
-          await updateProductQuantity(key, quantity[key]).then((res) =>
+          await updateProductQuantity(key, quantity[key], "dec").then((res) =>
             console.log(res)
           );
         }
         for (const key in quantity2) {
-          await updateProductQuantity(key, quantity2[key]).then((res) =>
+          await updateProductQuantity(key, quantity2[key], "dec").then((res) =>
             console.log(res)
           );
         }
@@ -415,7 +418,6 @@ const EntryForm = () => {
         });
         setLoading(false);
       } catch (err) {
-        console.log(err);
         setResponse({
           type: "error",
           message: err.message,

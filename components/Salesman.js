@@ -69,7 +69,6 @@ const Salesman = () => {
     });
   }, []);
 
-  console.log(Salesman);
   const [response, setResponse] = useState(false);
 
   const handleDelete = () => {
@@ -78,7 +77,6 @@ const Salesman = () => {
       setResponse(res);
       res.type === "success" &&
         getSalesmanData(user.uid).then((res) => {
-          console.log(res);
           res.status === 200 && setSalesman(res.data);
         });
     });
@@ -227,7 +225,7 @@ const Salesman = () => {
             </DialogContentText>
           </DialogContent>
           <DialogActions>
-            <Button>Cancel</Button>
+            <Button onClick={handleCloseDialog}>Cancel</Button>
             <Button onClick={() => handleDelete(deleteUserUid)}>Proceed</Button>
           </DialogActions>
         </Dialog>
