@@ -8,39 +8,20 @@ import {
   DialogTitle,
   DialogContent,
   IconButton,
-  Fab,
   Tooltip,
   Snackbar,
   Alert,
   Slide,
   DialogContentText,
   DialogActions,
-  TextField,
   Box,
 } from "@mui/material";
-import { useDispatch, useSelector } from "react-redux";
-import AddProduct from "../pages/products/add";
-import {
-  Add,
-  AddCircle,
-  Clear,
-  Close,
-  DeleteOutlined,
-  Edit,
-  EditOutlined,
-  Search,
-} from "@mui/icons-material";
-import Link from "next/link";
-import {
-  DataGrid,
-  GridToolbarDensitySelector,
-  GridToolbarFilterButton,
-} from "@mui/x-data-grid";
+import { useSelector } from "react-redux";
+import { DeleteOutlined } from "@mui/icons-material";
+import { DataGrid } from "@mui/x-data-grid";
 import {
   deleteOrder,
-  deleteProduct,
   getOrderData,
-  getProductData,
   updateProductQuantity,
 } from "../redux/apiCalls";
 import QuickSearchToolbar from "../utils/QuickSearchToolbar";
@@ -65,29 +46,44 @@ const Orders = () => {
   }, []);
 
   const handleDelete = async () => {
-    // place order
+    setLoading(true);
+    //salesman only can delete order prepared by himself
+    if (
+      deleteOrderInfo.preparedBy !== user.name &&
+      user.accountType !== "Seller"
+    ) {
+      setResponse({
+        type: "error",
+        message: "You do not have permission to delete this order.",
+      });
+      setLoading(false);
+      setDeleteOrderInfo(false);
+      return;
+    }
     try {
-      setLoading(true);
-      await deleteOrder(deleteOrderInfo.id);
-      //handle stock update
+      // going to use Promise.all to run all these query parallely at the same time, It makes it super fast this way
+      const promises = [];
+      //delete order from orders docs
+      promises.push(deleteOrder(deleteOrderInfo.id));
+      //handle stock
       for (const key in deleteOrderInfo.quantity) {
-        await updateProductQuantity(
+        const p = updateProductQuantity(
           key,
           deleteOrderInfo.quantity[key],
           "inc"
-        ).then((res) => console.log(res));
+        );
+        promises.push(p);
       }
       for (const key in deleteOrderInfo.quantity2) {
-        await updateProductQuantity(
+        const p = updateProductQuantity(
           key,
           deleteOrderInfo.quantity2[key],
           "inc"
-        ).then((res) => console.log(res));
+        );
+        promises.push(p);
       }
 
-      await getOrderData(user.uid).then((res) => {
-        setOrders(res);
-      });
+      Promise.all(promises);
 
       setDeleteOrderInfo(false);
       const newOrders = await getOrderData(user.uid);
@@ -100,11 +96,11 @@ const Orders = () => {
       setLoading(false);
     } catch (err) {
       setDeleteOrderInfo(false);
-      setLoading(false);
       setResponse({
         type: "error",
         message: err.message,
       });
+      setLoading(false);
     }
   };
 
@@ -188,7 +184,7 @@ const Orders = () => {
           direction="row"
           justifyContent="space-between"
           alignItems="center"
-          sx={{ p: 1, backgroundColor: "#83cee0", color: "white" }}
+          sx={{ p: 1, backgroundColor: "#8af", color: "white" }}
         >
           <Typography>List of Orders</Typography>
         </Stack>
@@ -218,7 +214,6 @@ const Orders = () => {
             rowsPerPageOptions={[5]}
             disableSelectionOnClick
             density="comfortable"
-            sx={{ height: 500 }}
             initialState={{
               sorting: {
                 sortModel: [{ field: "createdAt", sort: "desc" }],

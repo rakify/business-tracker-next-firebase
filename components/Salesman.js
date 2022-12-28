@@ -8,82 +8,65 @@ import {
   DialogTitle,
   DialogContent,
   IconButton,
-  Fab,
   Tooltip,
   Snackbar,
   Alert,
   Slide,
   DialogContentText,
   DialogActions,
-  TextField,
   Box,
+  Collapse,
 } from "@mui/material";
-import { useDispatch, useSelector } from "react-redux";
-import AddProduct from "../pages/products/add";
-import {
-  Add,
-  AddCircle,
-  BlockRounded,
-  Clear,
-  Close,
-  DeleteOutlined,
-  Edit,
-  Search,
-} from "@mui/icons-material";
-import Link from "next/link";
-import {
-  DataGrid,
-  GridToolbarDensitySelector,
-  GridToolbarFilterButton,
-} from "@mui/x-data-grid";
-import {
-  deleteProduct,
-  deleteUser,
-  getOrderData,
-  getProductData,
-  getSalesmanData,
-} from "../redux/apiCalls";
+import { useSelector } from "react-redux";
+import { BlockRounded, CloseRounded } from "@mui/icons-material";
+import { DataGrid } from "@mui/x-data-grid";
+import { deleteUser, getSalesmanData } from "../redux/apiCalls";
 import QuickSearchToolbar from "../utils/QuickSearchToolbar";
+import AddSalesman from "./AddSalesman";
 
-const Transition = forwardRef(function Transition(props, ref) {
+const CollapseTransition = forwardRef(function Transition(props, ref) {
+  return <Collapse ref={ref} {...props} />;
+});
+const SlideTransition = forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
-function QuickToolbar(props) {
-  return (
-    <div>
-      <GridToolbarFilterButton />
-      <GridToolbarDensitySelector />
-    </div>
-  );
-}
 const Salesman = () => {
   const user = useSelector((state) => state.user.currentUser);
   const [salesman, setSalesman] = useState([]);
   const [deleteUserUid, setDeleteUserUid] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [addNew, setAddNew] = useState(false);
 
   useEffect(() => {
+    setLoading(true);
     getSalesmanData(user.uid).then((res) => {
-      console.log(res);
       res.status === 200 && setSalesman(res.data);
+      setLoading(false);
     });
   }, []);
 
   const [response, setResponse] = useState(false);
 
   const handleDelete = () => {
+    setLoading(true);
     setDeleteUserUid(false);
     deleteUser(deleteUserUid).then((res) => {
       setResponse(res);
-      res.type === "success" &&
-        getSalesmanData(user.uid).then((res) => {
-          res.status === 200 && setSalesman(res.data);
-        });
+      setLoading(false);
+      getSalesmanData(user.uid).then((res) => {
+        res.status === 200 && setSalesman(res.data);
+      });
     });
   };
 
-  const handleCloseDialog = () => {
-    setDeleteUserUid(false);
+  // when add new salesman successful AddSalesman will return to this with response
+  const handleCloseDialog = (res) => {
+    setAddNew(false);
+    getSalesmanData(user.uid).then((res) => {
+      res.status === 200 && setSalesman(res.data);
+    });
+    setResponse(res);
   };
 
   const columns = [
@@ -155,66 +138,84 @@ const Salesman = () => {
           direction="row"
           justifyContent="space-between"
           alignItems="center"
-          sx={{ p: 1, backgroundColor: "#83cee0", color: "white" }}
+          sx={{ p: 1, backgroundColor: "#8af", color: "white" }}
         >
           <Typography>Your Salesmen</Typography>
-          <Link href="/salesman/add/">
-            <Tooltip title="Add Salesman">
-              <AddCircle fontSize="large" />
-            </Tooltip>
-          </Link>
+          <Button
+            onClick={() => setAddNew(true)}
+            variant="outlined"
+            sx={{ color: "white" }}
+          >
+            Add New
+          </Button>
         </Stack>
 
-        {salesman.length === 0 ? (
-          <Typography
-            sx={{
-              color: "red",
-              fontSize: 20,
-              backgroundColor: "whitesmoke",
-              padding: 20,
+        <Box
+          sx={{
+            height: 500,
+            width: "100%",
+            "& .super-app-theme--header": {
+              backgroundColor: "#2263a5",
+              borderLeftWidth: 1,
+              borderColor: "#f1f8ff",
+              color: "white",
+              height: "50px !important",
+            },
+          }}
+        >
+          <DataGrid
+            localeText={{
+              noRowsLabel: "No salesman has been appointed yet.",
             }}
-          >
-            No salesman added yet.
-          </Typography>
-        ) : (
-          <Box
-            sx={{
-              height: 500,
-              width: "100%",
-              "& .super-app-theme--header": {
-                backgroundColor: "#2263a5",
-                borderLeftWidth: 1,
-                borderColor: "#f1f8ff",
-                color: "white",
-                height: "50px !important",
+            loading={loading}
+            components={{ Toolbar: QuickSearchToolbar }}
+            rows={salesman}
+            getRowId={(row) => row.salesmanUid}
+            columns={columns}
+            pageSize={5}
+            rowsPerPageOptions={[5]}
+            disableSelectionOnClick
+            density="comfortable"
+            initialState={{
+              sorting: {
+                sortModel: [{ field: "createdAt", sort: "desc" }],
               },
             }}
-          >
-            <DataGrid
-              components={{ Toolbar: QuickSearchToolbar }}
-              rows={salesman}
-              getRowId={(row) => row.salesmanUid}
-              columns={columns}
-              pageSize={5}
-              rowsPerPageOptions={[5]}
-              disableSelectionOnClick
-              density="comfortable"
-              sx={{ height: 500 }}
-              initialState={{
-                sorting: {
-                  sortModel: [{ field: "createdAt", sort: "desc" }],
-                },
-              }}
-            />
-          </Box>
-        )}
+          />
+        </Box>
 
-        {/* Confirm Delete */}
+        {/* Add New Salesman Dialog */}
+        <Dialog
+          open={Boolean(addNew)}
+          TransitionComponent={CollapseTransition}
+          keepMounted
+          onClose={() => setAddNew(false)}
+          aria-describedby="Add New Saleman"
+        >
+          <Stack
+            direction="row"
+            justifyContent="space-between"
+            alignItems="center"
+            sx={{ p: 1, backgroundColor: "#83cee0", color: "white" }}
+          >
+            <Typography>Appoint Salesman</Typography>
+            <Button size="small" onClick={() => setAddNew(false)}>
+              <Tooltip title="Go back">
+                <CloseRounded />
+              </Tooltip>
+            </Button>
+          </Stack>
+          <DialogContent>
+            <AddSalesman handleCloseDialog={handleCloseDialog} />
+          </DialogContent>
+        </Dialog>
+
+        {/* Confirm Delete Dialog */}
         <Dialog
           open={Boolean(deleteUserUid)}
-          TransitionComponent={Transition}
+          TransitionComponent={SlideTransition}
           keepMounted
-          onClose={handleCloseDialog}
+          onClose={() => setDeleteUserUid(false)}
           aria-describedby="alert-dialog-slide-description"
         >
           <DialogTitle>{"Confirm Delete"}</DialogTitle>
@@ -225,8 +226,13 @@ const Salesman = () => {
             </DialogContentText>
           </DialogContent>
           <DialogActions>
-            <Button onClick={handleCloseDialog}>Cancel</Button>
-            <Button onClick={() => handleDelete(deleteUserUid)}>Proceed</Button>
+            <Button onClick={() => setDeleteUserUid(false)}>Cancel</Button>
+            <Button
+              disable={loading}
+              onClick={() => handleDelete(deleteUserUid)}
+            >
+              {loading ? "Loading.." : "Proceed"}
+            </Button>
           </DialogActions>
         </Dialog>
 

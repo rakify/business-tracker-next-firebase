@@ -8,7 +8,6 @@ import {
   DialogTitle,
   DialogContent,
   IconButton,
-  Fab,
   Tooltip,
   Snackbar,
   Alert,
@@ -16,21 +15,20 @@ import {
   DialogContentText,
   DialogActions,
   Box,
+  Collapse,
 } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import AddProduct from "../pages/products/add";
-import {
-  Add,
-  AddCircle,
-  Close,
-  DeleteOutlined,
-  Edit,
-} from "@mui/icons-material";
+import { CloseRounded, DeleteOutlined, Edit } from "@mui/icons-material";
 import Link from "next/link";
 import { DataGrid } from "@mui/x-data-grid";
 import { deleteProduct, getProductData } from "../redux/apiCalls";
+import QuickSearchToolbar from "../utils/QuickSearchToolbar";
 
-const Transition = forwardRef(function Transition(props, ref) {
+const CollapseTransition = forwardRef(function Transition(props, ref) {
+  return <Collapse ref={ref} {...props} />;
+});
+const SlideTransition = forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
@@ -45,6 +43,7 @@ const Products = () => {
 
   const [deleteProductId, setDeleteProductId] = useState(false);
   const [response, setResponse] = useState(false);
+  const [addNew, setAddNew] = useState(false);
 
   const handleDelete = () => {
     setDeleteProductId(false);
@@ -54,8 +53,11 @@ const Products = () => {
     });
   };
 
-  const handleCloseDialog = () => {
-    setDeleteProductId(false);
+  // when add new product successful AddProduct will return to this with response
+  const handleCloseDialog = (res) => {
+    setAddNew(false);
+    getProductData(dispatch, user.uid);
+    setResponse(res);
   };
 
   const columns = [
@@ -145,65 +147,88 @@ const Products = () => {
           direction="row"
           justifyContent="space-between"
           alignItems="center"
-          sx={{ p: 1, backgroundColor: "#83cee0", color: "white" }}
+          sx={{ p: 1, backgroundColor: "#8af", color: "white" }}
         >
           <Typography>List of Products</Typography>
-          <Link href="/products/add">
+          <Button
+            variant="outlined"
+            sx={{ color: "white" }}
+            onClick={() => setAddNew(true)}
+          >
+            Add New
+          </Button>
+          {/* <Link href="/products/add">
             <Tooltip title="Add Product">
               <AddCircle fontSize="large" />
             </Tooltip>
-          </Link>
+          </Link> */}
         </Stack>
 
-        {products.length === 0 ? (
-          <Typography
-            sx={{
-              color: "red",
-              fontSize: 20,
-              backgroundColor: "whitesmoke",
-              padding: 20,
+        <Box
+          sx={{
+            height: 500,
+            width: "100%",
+            "& .super-app-theme--header": {
+              backgroundColor: "#2263a5",
+              borderLeftWidth: 1,
+              borderColor: "#f1f8ff",
+              color: "white",
+              height: "50px !important",
+            },
+          }}
+        >
+          <DataGrid
+            localeText={{
+              noRowsLabel: "No product has been added yet.",
             }}
-          >
-            No product added yet.
-          </Typography>
-        ) : (
-          <Box
-            sx={{
-              height: 500,
-              width: "100%",
-              "& .super-app-theme--header": {
-                backgroundColor: "#2263a5",
-                borderLeftWidth: 1,
-                borderColor: "#f1f8ff",
-                color: "white",
-                height: "50px !important",
+            components={{ Toolbar: QuickSearchToolbar }}
+            rows={products}
+            getRowId={(row) => row.id}
+            columns={columns}
+            pageSize={5}
+            rowsPerPageOptions={[5]}
+            disableSelectionOnClick
+            density="comfortable"
+            initialState={{
+              sorting: {
+                sortModel: [{ field: "createdAt", sort: "desc" }],
               },
             }}
+          />
+        </Box>
+
+        {/* Add New Product Dialog */}
+        <Dialog
+          open={Boolean(addNew)}
+          TransitionComponent={CollapseTransition}
+          keepMounted
+          onClose={() => setAddNew(false)}
+          aria-describedby="Add New Product"
+        >
+          <Stack
+            direction="row"
+            justifyContent="space-between"
+            alignItems="center"
+            sx={{ p: 1, backgroundColor: "#83cee0", color: "white" }}
           >
-            <DataGrid
-              rows={products}
-              getRowId={(row) => row.id}
-              columns={columns}
-              pageSize={5}
-              rowsPerPageOptions={[5]}
-              disableSelectionOnClick
-              density="comfortable"
-              sx={{ height: 500 }}
-              initialState={{
-                sorting: {
-                  sortModel: [{ field: "createdAt", sort: "desc" }],
-                },
-              }}
-            />
-          </Box>
-        )}
+            <Typography>Add New Product</Typography>
+            <Button size="small" onClick={() => setAddNew(false)}>
+              <Tooltip title="Go back">
+                <CloseRounded />
+              </Tooltip>
+            </Button>
+          </Stack>
+          <DialogContent>
+            <AddProduct handleCloseDialog={handleCloseDialog} />
+          </DialogContent>
+        </Dialog>
 
         {/* Confirm Delete */}
         <Dialog
           open={Boolean(deleteProductId)}
-          TransitionComponent={Transition}
+          TransitionComponent={SlideTransition}
           keepMounted
-          onClose={handleCloseDialog}
+          onClose={() => setDeleteProductId(false)}
           aria-describedby="alert-dialog-slide-description"
         >
           <DialogTitle>{"Confirm Delete"}</DialogTitle>
@@ -214,7 +239,7 @@ const Products = () => {
             </DialogContentText>
           </DialogContent>
           <DialogActions>
-            <Button onClick={handleCloseDialog}>Cancel</Button>
+            <Button onClick={() => setDeleteProductId(false)}>Cancel</Button>
             <Button onClick={() => handleDelete(deleteProductId)}>
               Proceed
             </Button>

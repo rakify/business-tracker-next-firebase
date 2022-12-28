@@ -21,7 +21,7 @@ import { addProduct } from "../redux/apiCalls";
 import Link from "next/link";
 import { ArrowCircleLeft, ArrowLeft, SwipeLeftAlt } from "@mui/icons-material";
 
-const AddProduct = () => {
+const AddProduct = ({ handleCloseDialog }) => {
   const dispatch = useDispatch();
   const user = useSelector((state) => state.user.currentUser);
   const [response, setResponse] = useState(false);
@@ -40,7 +40,7 @@ const AddProduct = () => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (
       inputs.name === "" ||
@@ -67,29 +67,18 @@ const AddProduct = () => {
         createdAt: new Date().toLocaleString("en-us"),
       };
 
-      addProduct(dispatch, newProduct).then((res) => setResponse(res));
+      const res = await addProduct(dispatch, newProduct);
+      setResponse(res);
+      //01902215404
     }
   };
   return (
     <Container
+      component="main"
       maxWidth="xs"
-      sx={{ backgroundColor: "whitesmoke", mt: 1 }}
+      sx={{ backgroundColor: "whitesmoke" }}
       disableGutters
     >
-      <Stack
-        direction="row"
-        justifyContent="space-between"
-        alignItems="center"
-        sx={{ p: 1, backgroundColor: "#83cee0", color: "white" }}
-      >
-        <Typography>Add New Product</Typography>
-        <Link href="/products">
-          <Tooltip title="Go back">
-            <ArrowCircleLeft fontSize="large" />
-          </Tooltip>
-        </Link>
-      </Stack>
-
       <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
         <FormControl fullWidth margin="normal" required focused>
           <InputLabel htmlFor="name">Name</InputLabel>
@@ -98,6 +87,7 @@ const AddProduct = () => {
             name="name"
             id="name"
             onChange={(e) => handleChange(e)}
+            autoFocus
           />
           <FormHelperText id="name-helper-text">
             Name is required.
@@ -175,7 +165,7 @@ const AddProduct = () => {
         </Stack>
 
         <Button type="submit" fullWidth variant="contained">
-          Submit
+          Add
         </Button>
       </Box>
 
