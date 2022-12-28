@@ -12,6 +12,7 @@ import {
   Snackbar,
   Alert,
   Box,
+  Tooltip,
 } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import Link from "next/link";
@@ -243,32 +244,34 @@ const EntryForm = () => {
               justifyContent: "center",
             }}
           >
-            <TextField
-              type="number"
-              error={
-                params.row.stock < quantity[params.row.id] ||
-                quantity[params.row.id] < 0
-              }
-              disabled={
-                !params.row.stock ||
-                (validation && validation.id !== params.row.id)
-              }
-              fullWidth
-              size="small"
-              sx={{
-                backgroundColor: "#dddfff",
-              }}
-              placeholder="0"
-              onChange={(e) =>
-                handleQuantity(
-                  e.target.value,
-                  params.row.price,
-                  params.row.id,
-                  params.row.stock,
-                  params.row.name
-                )
-              }
-            />
+            <Tooltip title={`Available Stock: ${params.row.stock}`}>
+              <TextField
+                type="number"
+                error={
+                  params.row.stock < quantity[params.row.id] ||
+                  quantity[params.row.id] < 0
+                }
+                disabled={
+                  !params.row.stock ||
+                  (validation && validation.id !== params.row.id)
+                }
+                fullWidth
+                size="small"
+                sx={{
+                  backgroundColor: "#dddfff",
+                }}
+                placeholder="0"
+                onChange={(e) =>
+                  handleQuantity(
+                    e.target.value,
+                    params.row.price,
+                    params.row.id,
+                    params.row.stock,
+                    params.row.name
+                  )
+                }
+              />
+            </Tooltip>
           </Stack>
         );
       },
@@ -317,32 +320,34 @@ const EntryForm = () => {
               justifyContent: "center",
             }}
           >
-            <TextField
-              error={
-                params.row.stock < quantity[params.row.id] ||
-                quantity[params.row.id] < 0
-              }
-              disabled={
-                !params.row.stock ||
-                (validation && validation.id !== params.row.id)
-              }
-              fullWidth
-              size="small"
-              margin="dense"
-              sx={{
-                backgroundColor: "#dddfff",
-              }}
-              placeholder="0"
-              onChange={(e) =>
-                handleQuantity2(
-                  e.target.value,
-                  params.row.price,
-                  params.row.id,
-                  params.row.stock,
-                  params.row.name
-                )
-              }
-            />
+            <Tooltip title={`Available Stock: ${params.row.stock}`}>
+              <TextField
+                error={
+                  params.row.stock < quantity[params.row.id] ||
+                  quantity[params.row.id] < 0
+                }
+                disabled={
+                  !params.row.stock ||
+                  (validation && validation.id !== params.row.id)
+                }
+                fullWidth
+                size="small"
+                margin="dense"
+                sx={{
+                  backgroundColor: "#dddfff",
+                }}
+                placeholder="0"
+                onChange={(e) =>
+                  handleQuantity2(
+                    e.target.value,
+                    params.row.price,
+                    params.row.id,
+                    params.row.stock,
+                    params.row.name
+                  )
+                }
+              />
+            </Tooltip>
           </Stack>
         );
       },

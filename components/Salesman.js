@@ -185,12 +185,12 @@ const Salesman = () => {
         </Box>
 
         <Typography>
-          <b style={{ color: "red" }}>Reminder: </b>{" "}
-          <marquee behavior="scroll" direction="left" scrollamount="7">
+          <p style={{ color: "red", textAlign: "center" }}>Reminder: </p>{" "}
+          <p style={{ textAlign: "center" }}>
             All a salesman can do is reset his/her password with the provided
             email associated with salesman account, place order and delete his
             order.
-          </marquee>
+          </p>
         </Typography>
 
         {/* Add New Salesman Dialog */}
