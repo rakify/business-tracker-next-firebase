@@ -318,7 +318,10 @@ const EntryForm = () => {
             }}
           >
             <TextField
-              error={params.row.stock < quantity[params.row.id]}
+              error={
+                params.row.stock < quantity[params.row.id] ||
+                quantity[params.row.id] < 0
+              }
               disabled={
                 !params.row.stock ||
                 (validation && validation.id !== params.row.id)
