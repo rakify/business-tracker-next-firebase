@@ -21,13 +21,13 @@ import {
   addOrder,
   getOrderData,
   getProductData,
+  getUserData,
   updateProductQuantity,
 } from "../redux/apiCalls";
 import QuickSearchToolbar from "../utils/QuickSearchToolbar";
 import { v4 as uuidv4 } from "uuid";
 
-
-const EntryForm = ({order}) => {
+const EntryForm = () => {
   const user = useSelector((state) => state.user.currentUser);
   const products = useSelector((state) => state.product.products);
   const productWithCommission = useSelector(
@@ -114,6 +114,12 @@ const EntryForm = ({order}) => {
       setValidation({
         type: "warning",
         message: `Insufficient stock for ${name}. Only ${stock} item(s) left.`,
+        id: id,
+      });
+    } else if (valuePassed < 0) {
+      setValidation({
+        type: "warning",
+        message: `Quantity can not contain negative value.`,
         id: id,
       });
     } else setValidation(false);
@@ -238,7 +244,11 @@ const EntryForm = ({order}) => {
             }}
           >
             <TextField
-              error={params.row.stock < quantity[params.row.id]}
+              type="number"
+              error={
+                params.row.stock < quantity[params.row.id] ||
+                quantity[params.row.id] < 0
+              }
               disabled={
                 !params.row.stock ||
                 (validation && validation.id !== params.row.id)
@@ -370,67 +380,81 @@ const EntryForm = ({order}) => {
       });
     } else {
       setLoading(true);
-      // if seller himself prepares the order give his username else salesman name
-      let preparedBy = "",
-        preparedById = "";
-      if (user.accountType === "Seller") {
-        preparedBy = user.username;
-        preparedById = user.uid;
-      } else {
-        preparedBy = user.name;
-        preparedById = user.salesmanUid;
-      }
+      //checking if user is not banned yet
+      let validUser = "success";
+      if (user.accountType === "Salesman")
+        validUser = await getUserData(dispatch, user.salesmanUid);
+      if (validUser === "success") {
+        const preparedBy = user.username;
+        let preparedById = "";
 
-      //prepare order
-      const order = {
-        ...inputs,
-        subtotal,
-        subtotal2,
-        quantity,
-        quantity2,
-        createdAt: new Date().toLocaleString("en-us"),
-        preparedBy,
-        preparedById,
-        id: uuidv4(),
-      };
-
-      // place order
-      try {
-        await addOrder(order);
-        setResponse({
-          type: "success",
-          message: "Order placed successfully.",
-        });
-
-        //handle stock update
-        for (const key in quantity) {
-          await updateProductQuantity(key, quantity[key], "dec").then((res) =>
-            console.log(res)
-          );
+        // if seller himself prepares the order give his uid else salesman uid
+        if (user.accountType === "Seller") {
+          preparedById = user.uid;
+        } else {
+          preparedById = user.salesmanUid;
         }
-        for (const key in quantity2) {
-          await updateProductQuantity(key, quantity2[key], "dec").then((res) =>
-            console.log(res)
-          );
+
+        //prepare order
+        const order = {
+          ...inputs,
+          subtotal,
+          subtotal2,
+          quantity,
+          quantity2,
+          createdAt: new Date().toLocaleString("en-us"),
+          preparedBy,
+          preparedById,
+          id: uuidv4(),
+        };
+
+        // place order
+        try {
+          // going to use Promise.all to run all these query parallely at the same time, It makes it super fast this way
+          const promises = [];
+          //delete order from orders docs
+          promises.push(addOrder(order));
+          //handle stock
+          for (const key in order.quantity) {
+            const p = updateProductQuantity(key, order.quantity[key], "dec");
+            promises.push(p);
+          }
+          for (const key in order.quantity2) {
+            const p = updateProductQuantity(key, order.quantity2[key], "dec");
+            promises.push(p);
+          }
+
+          Promise.all(promises);
+
+          getOrderData(user.uid).then((res) => {
+            setInputs((prev) => ({ ...prev, entryNo: res.length + 1 }));
+          });
+          setResponse({
+            type: "success",
+            message: "Order placed successfully.",
+          });
+
+          setLoading(false);
+        } catch (err) {
+          setResponse({
+            type: "error",
+            message: err.message,
+          });
+          setLoading(false);
         }
-        getOrderData(user.uid).then((res) => {
-          setInputs((prev) => ({ ...prev, entryNo: res.length + 1 }));
-        });
-        setLoading(false);
-      } catch (err) {
+      } else
         setResponse({
-          type: "error",
-          message: err.message,
+          type: "warning",
+          message: "Your account is banned.",
         });
-        setLoading(false);
-      }
+      setLoading(false);
     }
   };
 
   return (
     <>
       <>
-        {user.accountType === "Seller" && (
+        {user.accountType !== "Admin" && (
           <Stack>
             <Typography
               variant="h5"

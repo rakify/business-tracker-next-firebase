@@ -78,8 +78,8 @@ const Salesman = () => {
       editable: false,
     },
     {
-      field: "name",
-      headerName: "Name",
+      field: "username",
+      headerName: "Userame",
       headerClassName: "super-app-theme--header",
       width: 150,
       editable: false,
@@ -146,7 +146,7 @@ const Salesman = () => {
             variant="outlined"
             sx={{ color: "white" }}
           >
-            Add New
+            Appoint
           </Button>
         </Stack>
 
@@ -184,27 +184,38 @@ const Salesman = () => {
           />
         </Box>
 
+        <Typography>
+          <b style={{ color: "red" }}>Reminder: </b>{" "}
+          <marquee behavior="scroll" direction="left" scrollamount="7">
+            All a salesman can do is reset his/her password with the provided
+            email associated with salesman account, place order and delete his
+            order.
+          </marquee>
+        </Typography>
+
         {/* Add New Salesman Dialog */}
         <Dialog
+          sx={{ overflowX: "scroll" }}
           open={Boolean(addNew)}
           TransitionComponent={CollapseTransition}
-          keepMounted
           onClose={() => setAddNew(false)}
           aria-describedby="Add New Saleman"
         >
-          <Stack
-            direction="row"
-            justifyContent="space-between"
-            alignItems="center"
-            sx={{ p: 1, backgroundColor: "#83cee0", color: "white" }}
-          >
-            <Typography>Appoint Salesman</Typography>
-            <Button size="small" onClick={() => setAddNew(false)}>
-              <Tooltip title="Go back">
-                <CloseRounded />
-              </Tooltip>
-            </Button>
-          </Stack>
+          <DialogTitle>
+            <Stack
+              direction="row"
+              justifyContent="space-between"
+              alignItems="center"
+              sx={{ p: 1, backgroundColor: "#83cee0", color: "white" }}
+            >
+              <Typography>Appoint Salesman</Typography>
+              <Button size="small" onClick={() => setAddNew(false)}>
+                <Tooltip title="Go back">
+                  <CloseRounded />
+                </Tooltip>
+              </Button>
+            </Stack>
+          </DialogTitle>
           <DialogContent>
             <AddSalesman handleCloseDialog={handleCloseDialog} />
           </DialogContent>

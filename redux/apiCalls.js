@@ -157,8 +157,10 @@ export const getUserData = async (dispatch, uid) => {
   const docSnap = await getDoc(docRef);
   if (docSnap.exists()) {
     dispatch(getUserSuccess(docSnap.data()));
+    return { type: "success", message: "Logged In Successfully." };
   } else {
     dispatch(getUserFailure());
+    return { type: "error", message: "Your account is banned." };
   }
 };
 //update
@@ -244,7 +246,8 @@ export const getSalesmanData = async (uid) => {
 // Orders
 export const addOrder = async (orderInfo) => {
   try {
-    await setDoc(doc(db, "orders", orderInfo.id), orderInfo);
+    const res = await setDoc(doc(db, "orders", orderInfo.id), orderInfo);
+    console.log(res);
     return {
       type: "success",
       message: "New order placed.",
@@ -293,9 +296,8 @@ export const login = async (dispatch, email, password) => {
       email,
       password
     );
-    await getUserData(dispatch, userCredential.user.uid);
-
-    return { type: "success", message: "Logged In Successfully." };
+    const res = await getUserData(dispatch, userCredential.user.uid);
+    return res;
   } catch (error) {
     return {
       type: "error",
