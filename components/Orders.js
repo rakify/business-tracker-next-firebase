@@ -17,7 +17,7 @@ import {
   Box,
 } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
-import { DeleteOutlined } from "@mui/icons-material";
+import { DeleteOutlined, InfoOutlined, ReceiptLong } from "@mui/icons-material";
 import { DataGrid } from "@mui/x-data-grid";
 import {
   deleteOrder,
@@ -27,6 +27,7 @@ import {
 } from "../redux/apiCalls";
 import QuickSearchToolbar from "../utils/QuickSearchToolbar";
 import UserErrorPage from "./UserErrorPage";
+import SwipeableEdgeDrawer from "../utils/Drawer";
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
@@ -38,6 +39,7 @@ const Orders = () => {
   const [loading, setLoading] = useState(false);
   const [deleteOrderInfo, setDeleteOrderInfo] = useState(false);
   const [response, setResponse] = useState(false);
+  const [openDetails, setOpenDetails] = useState(false);
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -56,7 +58,10 @@ const Orders = () => {
   }, []);
 
   const handleDelete = async () => {
-    if (!user.approved || deleteOrderInfo.preparedBy !== user.username) {
+    if (
+      user.accountType === "Salesman" &&
+      (!user.approved || deleteOrderInfo.preparedBy !== user.username)
+    ) {
       setResponse({
         type: "error",
         message: `You are not allowed to do that.`,
@@ -87,9 +92,8 @@ const Orders = () => {
           promises.push(p);
         }
 
-        Promise.all(promises);
+        await Promise.all(promises);
 
-        setDeleteOrderInfo(false);
         const newOrders = await getOrderData(user.uid);
         setOrders(newOrders);
 
@@ -97,6 +101,7 @@ const Orders = () => {
           type: "success",
           message: "Order deleted successfully.",
         });
+        setDeleteOrderInfo(false);
         setLoading(false);
       } catch (err) {
         setDeleteOrderInfo(false);
@@ -113,6 +118,10 @@ const Orders = () => {
     setDeleteOrderInfo(false);
   };
 
+  const handleCloseOpenDetails = ()=>{
+    setOpenDetails(!openDetails);
+  }
+
   const columns = [
     {
       field: "createdAt",
@@ -120,6 +129,11 @@ const Orders = () => {
       headerClassName: "super-app-theme--header",
       width: 180,
       editable: false,
+      renderCell: (params) => {
+        return new Date(params.row.createdAt.seconds * 1000).toLocaleString(
+          "en-us"
+        );
+      },
     },
     {
       field: "entryNo",
@@ -139,7 +153,7 @@ const Orders = () => {
       field: "customerContact",
       headerName: "Contact",
       headerClassName: "super-app-theme--header",
-      width: 150,
+      width: 120,
       editable: false,
     },
     {
@@ -153,7 +167,7 @@ const Orders = () => {
       field: "preparedBy",
       headerName: "Prepared By",
       headerClassName: "super-app-theme--header",
-      width: 150,
+      width: 120,
       editable: false,
     },
     {
@@ -170,6 +184,14 @@ const Orders = () => {
             >
               <Tooltip title="Delete">
                 <DeleteOutlined />
+              </Tooltip>
+            </IconButton>
+            <IconButton
+              aria-label="details"
+              onClick={() => setOpenDetails(params.row)}
+            >
+              <Tooltip title="Details">
+                <InfoOutlined />
               </Tooltip>
             </IconButton>
           </Stack>
@@ -191,7 +213,9 @@ const Orders = () => {
           alignItems="center"
           sx={{ p: 1, backgroundColor: "#8af", color: "white" }}
         >
-          <Typography>List of Orders</Typography>
+          <Stack direction="row" gap={1} fontWeight="bolder">
+            <ReceiptLong /> List of Orders
+          </Stack>
         </Stack>
         <Box
           sx={{
@@ -243,8 +267,12 @@ const Orders = () => {
             </DialogContentText>
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => handleCloseDialog()}>Cancel</Button>
-            <Button onClick={() => handleDelete()}>Proceed</Button>
+            <Button disabled={loading} onClick={() => handleCloseDialog()}>
+              Cancel
+            </Button>
+            <Button disabled={loading} onClick={() => handleDelete()}>
+              {loading ? "Loading.." : "Proceed"}
+            </Button>
           </DialogActions>
         </Dialog>
 
@@ -263,6 +291,10 @@ const Orders = () => {
           </Alert>
         </Snackbar>
       </Container>
+
+      {openDetails && (
+        <SwipeableEdgeDrawer handleClose={handleCloseOpenDetails} order={openDetails} />
+      )}
     </>
   );
 };

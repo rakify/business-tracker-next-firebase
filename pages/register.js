@@ -5,7 +5,6 @@ import Grid from "@mui/material/Grid";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Container from "@mui/material/Container";
-import { useDispatch, useSelector } from "react-redux";
 import { useState } from "react";
 import { Alert, Snackbar } from "@mui/material";
 import Link from "next/link";
@@ -13,6 +12,7 @@ import { addUserData, getUserData } from "../redux/apiCalls";
 import { auth } from "../config/firebase";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import Head from "next/head";
+import { serverTimestamp } from "firebase/firestore";
 
 export default function Register() {
   const [response, setResponse] = useState(false);
@@ -20,9 +20,11 @@ export default function Register() {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = (event) => {
     event.preventDefault();
+    setLoading(true);
     createUserWithEmailAndPassword(auth, email, password)
       .then((userCredential) => {
         const userInfo = {
@@ -30,16 +32,18 @@ export default function Register() {
           username,
           email,
           phoneNumber,
-          createdAt: userCredential.user.metadata.creationTime,
-          lastLoginAt: userCredential.user.metadata.lastSignInTime,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
           approved: false,
           accountType: "Seller",
         };
         addUserData(userInfo).then((res) => {
           setResponse(res);
+          setLoading(false);
         });
       })
       .catch((error) => {
+        setLoading(false);
         setResponse({
           type: "error",
           message:
@@ -126,12 +130,13 @@ export default function Register() {
               onChange={(e) => setPassword(e.target.value)}
             />
             <Button
+              disabled={loading}
               type="submit"
               fullWidth
               variant="contained"
               sx={{ mt: 3, mb: 2 }}
             >
-              Sign Up
+              {loading ? "Loading.." : "Sign Up"}
             </Button>
             <Grid container>
               <Grid item xs>

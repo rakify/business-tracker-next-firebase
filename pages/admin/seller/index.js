@@ -82,13 +82,11 @@ const SellerList = () => {
       headerClassName: "super-app-theme--header",
       width: 250,
       editable: false,
-    },
-    {
-      field: "lastLoginAt",
-      headerName: "Last Login",
-      headerClassName: "super-app-theme--header",
-      width: 250,
-      editable: false,
+      renderCell: (params) => {
+        return new Date(params.row.createdAt.seconds * 1000).toLocaleString(
+          "en-us"
+        );
+      },
     },
     {
       field: "approved",
@@ -102,7 +100,7 @@ const SellerList = () => {
     },
     {
       field: "uid",
-      headerName: "Uid",
+      headerName: "UID",
       headerClassName: "super-app-theme--header",
       width: 250,
       editable: false,

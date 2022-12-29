@@ -5,9 +5,10 @@ import Container from "@mui/material/Container";
 import { useSelector } from "react-redux";
 import { useState } from "react";
 import { Alert, Divider, Snackbar, Typography } from "@mui/material";
-import { addSalesmanData, addUserData, getUserData } from "../redux/apiCalls";
+import { addSalesmanData } from "../redux/apiCalls";
 import { auth } from "../config/firebase";
 import { createUserWithEmailAndPassword } from "firebase/auth";
+import { serverTimestamp } from "firebase/firestore";
 
 export default function AddSalesman({ handleCloseDialog }) {
   const user = useSelector((state) => state.user.currentUser); // Owner
@@ -47,8 +48,7 @@ export default function AddSalesman({ handleCloseDialog }) {
           username, // Sellsman name
           email,
           phoneNumber,
-          createdAt: userCredential.user.metadata.creationTime,
-          lastLoginAt: userCredential.user.metadata.lastSignInTime,
+          createdAt: serverTimestamp(),
           approved: true,
           accountType: "Salesman",
           shopName,

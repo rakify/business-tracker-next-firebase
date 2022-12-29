@@ -19,7 +19,13 @@ import {
 } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import AddProduct from "../pages/products/add";
-import { CloseRounded, DeleteOutlined, Edit } from "@mui/icons-material";
+import {
+  AddCircle,
+  CloseRounded,
+  DeleteOutlined,
+  Edit,
+  ViewList,
+} from "@mui/icons-material";
 import Link from "next/link";
 import { DataGrid } from "@mui/x-data-grid";
 import { deleteProduct, getProductData } from "../redux/apiCalls";
@@ -69,20 +75,6 @@ const Products = () => {
 
   const columns = [
     {
-      field: "createdAt",
-      headerName: "Created At",
-      headerClassName: "super-app-theme--header",
-      width: 200,
-      editable: false,
-    },
-    {
-      field: "id",
-      headerClassName: "super-app-theme--header",
-      headerName: "ID",
-      width: 200,
-      editable: false,
-    },
-    {
       field: "name",
       headerName: "Name",
       headerClassName: "super-app-theme--header",
@@ -108,6 +100,37 @@ const Products = () => {
       headerName: "Commission",
       headerClassName: "super-app-theme--header",
       width: 150,
+      editable: false,
+    },
+    {
+      field: "createdAt",
+      headerName: "Created At",
+      headerClassName: "super-app-theme--header",
+      width: 200,
+      editable: false,
+      renderCell: (params) => {
+        return new Date(params.row.createdAt.seconds * 1000).toLocaleString(
+          "en-us"
+        );
+      },
+    },
+    {
+      field: "updatedAt",
+      headerName: "Last Updated",
+      headerClassName: "super-app-theme--header",
+      width: 200,
+      editable: false,
+      renderCell: (params) => {
+        return new Date(params.row.updatedAt.seconds * 1000).toLocaleString(
+          "en-us"
+        );
+      },
+    },
+    {
+      field: "id",
+      headerClassName: "super-app-theme--header",
+      headerName: "ID",
+      width: 300,
       editable: false,
     },
     {
@@ -156,19 +179,18 @@ const Products = () => {
           alignItems="center"
           sx={{ p: 1, backgroundColor: "#8af", color: "white" }}
         >
-          <Typography>List of Products</Typography>
-          <Button
-            variant="outlined"
-            sx={{ color: "white" }}
-            onClick={() => setAddNew(true)}
-          >
-            Add New
-          </Button>
-          {/* <Link href="/products/add">
-            <Tooltip title="Add Product">
-              <AddCircle fontSize="large" />
-            </Tooltip>
-          </Link> */}
+          <Stack direction="row" gap={1} fontWeight="bolder">
+            <ViewList /> List of Products
+          </Stack>
+          <Tooltip title="Add New Product" arrow>
+            <Button
+              variant="contained"
+              sx={{ color: "white" }}
+              onClick={() => setAddNew(true)}
+            >
+              <AddCircle />
+            </Button>
+          </Tooltip>
         </Stack>
 
         <Box

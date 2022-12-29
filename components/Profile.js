@@ -12,8 +12,10 @@ import {
 } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import { updateUser } from "../redux/apiCalls";
+import { serverTimestamp } from "firebase/firestore";
+import { Person } from "@mui/icons-material";
 
-const Settings = () => {
+const Profile = () => {
   const dispatch = useDispatch();
   const user = useSelector((state) => state.user.currentUser);
   const [inputs, setInputs] = useState({
@@ -50,6 +52,8 @@ const Settings = () => {
         shopDetails: inputs.shopDetails,
         shopOfficePn: inputs.shopOfficePn,
         shopOtherPn: inputs.shopOtherPn,
+        createdAt: user.createdAt,
+        updatedAt: serverTimestamp(),
       };
       updateUser(dispatch, user.uid, updatedUser).then((res) => {
         setResponse(res);
@@ -60,7 +64,7 @@ const Settings = () => {
   return (
     <>
       <Container
-        maxWidth="lg"
+        maxWidth="xs"
         sx={{ backgroundColor: "whitesmoke", mt: 1 }}
         disableGutters
       >
@@ -70,7 +74,10 @@ const Settings = () => {
           alignItems="center"
           sx={{ p: 1, backgroundColor: "#83cee0", color: "white" }}
         >
-          <Typography>Profile</Typography>
+          <Stack direction="row" gap={1} fontWeight="bolder">
+            <Person />
+            Profile
+          </Stack>
         </Stack>
         <Box
           component="form"
@@ -180,4 +187,4 @@ const Settings = () => {
   );
 };
 
-export default Settings;
+export default Profile;

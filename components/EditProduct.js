@@ -19,6 +19,7 @@ import { updateProduct } from "../redux/apiCalls";
 import Link from "next/link";
 import { ArrowCircleLeft } from "@mui/icons-material";
 import { useRouter } from "next/router";
+import { serverTimestamp } from "firebase/firestore";
 
 export default function EditProduct() {
   const router = useRouter();
@@ -79,7 +80,8 @@ export default function EditProduct() {
         note: inputs.note,
         stock: parseInt(inputs.stock),
         acceptCommission: Boolean(checked),
-        createdAt: new Date().toLocaleString("en-us"),
+        createdAt: product.createdAt,
+        updatedAt: serverTimestamp(),
       };
 
       updateProduct(dispatch, id, newProduct).then((res) => {

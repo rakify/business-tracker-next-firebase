@@ -27,9 +27,9 @@ import {
   updateProductQuantity,
 } from "../redux/apiCalls";
 import QuickSearchToolbar from "../utils/QuickSearchToolbar";
-import { v4 as uuidv4 } from "uuid";
 import Head from "next/head";
 import UserErrorPage from "./UserErrorPage";
+import { serverTimestamp } from "firebase/firestore";
 
 const EntryForm = () => {
   const user = useSelector((state) => state.user.currentUser);
@@ -64,7 +64,6 @@ const EntryForm = () => {
   }, []);
 
   const weekday = new Date().toLocaleString("en-us", {
-    //this is so we can let only todays entry the access to remove
     weekday: "long",
   });
   const date = new Date().toLocaleString("en-us");
@@ -229,15 +228,19 @@ const EntryForm = () => {
       field: "price",
       headerClassName: "super-app-theme--header",
       headerName: "Price",
-      width: 100,
+      width: 80,
       editable: false,
+      headerAlign: "center",
+      align: "center",
     },
     {
       field: "name",
       headerName: "Name",
       headerClassName: "super-app-theme--header",
-      width: 100,
+      width: 155,
       editable: false,
+      headerAlign: "center",
+      align: "center",
     },
     {
       field: "quantity",
@@ -245,6 +248,8 @@ const EntryForm = () => {
       headerClassName: "super-app-theme--header",
       width: 100,
       editable: false,
+      headerAlign: "center",
+      align: "center",
       renderCell: (params) => {
         return (
           <Stack
@@ -292,8 +297,10 @@ const EntryForm = () => {
       field: "subtotal",
       headerName: "Subtotal",
       headerClassName: "super-app-theme--header",
-      width: 100,
+      width: 80,
       editable: false,
+      headerAlign: "center",
+      align: "center",
       renderCell: (params) => {
         return <Typography>{subtotal[params.row.id]}</Typography>;
       },
@@ -305,15 +312,19 @@ const EntryForm = () => {
       field: "price",
       headerClassName: "super-app-theme--header",
       headerName: "Price",
-      width: 100,
+      width: 80,
       editable: false,
+      headerAlign: "center",
+      align: "center",
     },
     {
       field: "name",
       headerName: "Name",
       headerClassName: "super-app-theme--header",
-      width: 100,
+      width: 155,
       editable: false,
+      headerAlign: "center",
+      align: "center",
     },
     {
       field: "quantity",
@@ -321,6 +332,8 @@ const EntryForm = () => {
       headerClassName: "super-app-theme--header",
       width: 100,
       editable: false,
+      headerAlign: "center",
+      align: "center",
       renderCell: (params) => {
         return (
           <Stack
@@ -345,6 +358,7 @@ const EntryForm = () => {
                 fullWidth
                 size="small"
                 margin="dense"
+                type="number"
                 sx={{
                   backgroundColor: "#dddfff",
                 }}
@@ -368,8 +382,10 @@ const EntryForm = () => {
       field: "subtotal",
       headerName: "Subtotal",
       headerClassName: "super-app-theme--header",
-      width: 100,
+      width: 80,
       editable: false,
+      headerAlign: "center",
+      align: "center",
       renderCell: (params) => {
         return <Typography>{subtotal2[params.row.id]}</Typography>;
       },
@@ -428,10 +444,11 @@ const EntryForm = () => {
           subtotal2,
           quantity,
           quantity2,
-          createdAt: new Date().toLocaleString("en-us"),
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
           preparedBy,
           preparedById,
-          id: uuidv4(),
+          id: crypto.randomUUID(),
         };
 
         // place order
@@ -450,7 +467,7 @@ const EntryForm = () => {
             promises.push(p);
           }
 
-          Promise.all(promises);
+          await Promise.all(promises);
 
           getOrderData(user.uid).then((res) => {
             setInputs((prev) => ({ ...prev, entryNo: res.length + 1 }));
@@ -497,29 +514,29 @@ const EntryForm = () => {
               variant="h5"
               sx={{ textAlign: "center", textTransform: "capitalize" }}
             >
-              {user?.shopName || <Link href="/settings">[add shop name]</Link>}
+              {user?.shopName || <Link href="/profile">[add shop name]</Link>}
             </Typography>
             <Typography
               sx={{ textAlign: "center", textTransform: "capitalize" }}
             >
               {user?.shopAddress || (
-                <Link href="/settings">[add shop address]</Link>
+                <Link href="/profile">[add shop address]</Link>
               )}
             </Typography>
             <Typography
               sx={{ textAlign: "center", textTransform: "capitalize" }}
             >
               {user?.shopDetails || (
-                <Link href="/settings">[add shop details]</Link>
+                <Link href="/profile">[add shop details]</Link>
               )}
             </Typography>
             <Typography
               sx={{ textAlign: "center", textTransform: "capitalize" }}
             >
               Mobile:{" "}
-              {user?.shopOtherPn || <Link href="/settings">[add phone]</Link>},
+              {user?.shopOtherPn || <Link href="/profile">[add phone]</Link>},
               Office:{" "}
-              {user?.shopOfficePn || <Link href="/settings">[add phone]</Link>}
+              {user?.shopOfficePn || <Link href="/profile">[add phone]</Link>}
             </Typography>
           </Stack>
         )}
@@ -657,11 +674,11 @@ const EntryForm = () => {
                           borderLeftWidth: 1,
                           borderColor: "#f1f8ff",
                           color: "white",
-                          height: "50px !important",
                         },
                       }}
                     >
                       <DataGrid
+                        headerHeight={30}
                         loading={loading}
                         components={{ Toolbar: QuickSearchToolbar }}
                         rows={productWithCommission}
@@ -894,11 +911,12 @@ const EntryForm = () => {
                           borderLeftWidth: 1,
                           borderColor: "#f1f8ff",
                           color: "white",
-                          height: "50px !important",
                         },
                       }}
                     >
                       <DataGrid
+                        headerHeight={30}
+                        loading={loading}
                         components={{ Toolbar: QuickSearchToolbar }}
                         rows={productWithoutCommission}
                         getRowId={(row) => row.id}
@@ -1301,7 +1319,7 @@ const EntryForm = () => {
 
       {/* Display AddProduct success message or error */}
       <Snackbar
-        // anchorOrigin={{ vertical: "top", horizontal: "right" }}
+        anchorOrigin={{ vertical: "top", horizontal: "right" }}
         open={Boolean(response)}
         autoHideDuration={4000}
         onClose={() => setResponse(false)}

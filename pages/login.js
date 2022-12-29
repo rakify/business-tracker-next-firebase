@@ -9,15 +9,14 @@ import { useDispatch, useSelector } from "react-redux";
 import { useState } from "react";
 import { Alert, Snackbar } from "@mui/material";
 import Link from "next/link";
-import { getProductData, getUserData, login } from "../redux/apiCalls";
-import { auth } from "../config/firebase";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { login } from "../redux/apiCalls";
 import { useRouter } from "next/router";
 import Head from "next/head";
 
 export default function Login({ from = "" }) {
   const dispatch = useDispatch();
   const router = useRouter();
+  const [loading, setLoading] = useState(false);
 
   const [response, setResponse] = useState(false);
   const [email, setEmail] = useState("");
@@ -30,8 +29,10 @@ export default function Login({ from = "" }) {
     else if (password === "")
       setResponse({ type: "warning", message: "Password is required." });
     else {
+      setLoading(true);
       login(dispatch, email, password).then((res) => {
         setResponse(res);
+        setLoading(false);
         res.type === "success" && from === "" && router.push("/");
       });
     }
@@ -91,11 +92,12 @@ export default function Login({ from = "" }) {
             />
             <Button
               type="submit"
+              disabled={loading}
               fullWidth
               variant="contained"
               sx={{ mt: 3, mb: 2 }}
             >
-              Sign In
+              {loading ? "Loading.." : "Sign In"}
             </Button>
             <Grid container>
               <Grid item xs>

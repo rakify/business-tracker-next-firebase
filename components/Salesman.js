@@ -23,6 +23,8 @@ import {
   BlockRounded,
   CheckCircle,
   CloseRounded,
+  PersonAddAlt1,
+  RecentActors,
 } from "@mui/icons-material";
 import { DataGrid } from "@mui/x-data-grid";
 import {
@@ -99,6 +101,11 @@ const Salesman = () => {
       headerClassName: "super-app-theme--header",
       width: 250,
       editable: false,
+      renderCell: (params) => {
+        return new Date(params.row.createdAt.seconds * 1000).toLocaleString(
+          "en-us"
+        );
+      },
     },
     {
       field: "username",
@@ -119,13 +126,6 @@ const Salesman = () => {
       headerName: "Phone",
       headerClassName: "super-app-theme--header",
       width: 200,
-      editable: false,
-    },
-    {
-      field: "lastLoginAt",
-      headerName: "Last Login",
-      headerClassName: "super-app-theme--header",
-      width: 250,
       editable: false,
     },
     {
@@ -174,14 +174,18 @@ const Salesman = () => {
           alignItems="center"
           sx={{ p: 1, backgroundColor: "#8af", color: "white" }}
         >
-          <Typography>Your Salesmen</Typography>
-          <Button
-            onClick={() => setAddNew(true)}
-            variant="outlined"
-            sx={{ color: "white" }}
-          >
-            Appoint
-          </Button>
+          <Stack direction="row" gap={1} fontWeight="bolder">
+            <RecentActors /> Your Salesmen
+          </Stack>
+          <Tooltip title="Appoint Salesman" arrow>
+            <Button
+              onClick={() => setAddNew(true)}
+              variant="contained"
+              sx={{ color: "white" }}
+            >
+              <PersonAddAlt1 />
+            </Button>
+          </Tooltip>
         </Stack>
 
         <Box
@@ -221,8 +225,8 @@ const Salesman = () => {
         <Typography>
           <p style={{ color: "red", textAlign: "center" }}>Reminder: </p>{" "}
           <p style={{ textAlign: "center" }}>
-            All a salesman can do is reset his/her password with the provided
-            email associated with salesman account, place order and delete his
+            All a salesman can do is reset salesman's password with the provided
+            email associated with salesman account, place order and delete salesman's
             order.
           </p>
         </Typography>

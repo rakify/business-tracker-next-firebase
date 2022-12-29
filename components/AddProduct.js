@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import {
   Typography,
-  TextField,
   Stack,
   Button,
   Checkbox,
@@ -13,15 +12,12 @@ import {
   Input,
   FormHelperText,
   Container,
-  Tooltip,
 } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
-import { v4 as uuidv4 } from "uuid";
 import { addProduct } from "../redux/apiCalls";
-import Link from "next/link";
-import { ArrowCircleLeft, ArrowLeft, SwipeLeftAlt } from "@mui/icons-material";
+import { serverTimestamp } from "firebase/firestore";
 
-const AddProduct = ({ handleCloseDialog }) => {
+const AddProduct = () => {
   const dispatch = useDispatch();
   const user = useSelector((state) => state.user.currentUser);
   const [response, setResponse] = useState(false);
@@ -62,14 +58,15 @@ const AddProduct = ({ handleCloseDialog }) => {
     } else {
       let newProduct = {
         uid: user.uid,
-        id: uuidv4(),
+        id: crypto.randomUUID(),
         name: inputs.name,
         price: parseFloat(inputs.price),
         unit: inputs.unit,
         note: inputs.note,
         stock: parseInt(inputs.stock),
         acceptCommission: Boolean(checked),
-        createdAt: new Date().toLocaleString("en-us"),
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
       };
 
       const res = await addProduct(dispatch, newProduct);
