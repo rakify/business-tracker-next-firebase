@@ -46,7 +46,7 @@ const Products = () => {
   const [addNew, setAddNew] = useState(false);
 
   const handleDelete = () => {
-    if (user.accountType !== "Seller") {
+    if (user.accountType !== "Seller" || !user.approved) {
       setResponse({
         type: "error",
         message: `You are not allowed to do that.`,

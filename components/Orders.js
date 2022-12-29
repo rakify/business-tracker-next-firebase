@@ -38,18 +38,15 @@ const Orders = () => {
   const [loading, setLoading] = useState(false);
   const [deleteOrderInfo, setDeleteOrderInfo] = useState(false);
   const [response, setResponse] = useState(false);
-  const [criticalResponse, setCriticalResponse] = useState(false);
   const dispatch = useDispatch();
 
   useEffect(() => {
     const setUp = async () => {
       setLoading(true);
       if (user.accountType === "Seller") {
-        const res = await getUserData(dispatch, user.uid);
-        res.type === "error" && setCriticalResponse(res);
+        await getUserData(dispatch, user.uid);
       } else if (user.accountType === "Salesman") {
-        const res = await getUserData(dispatch, user.salesmanUid);
-        res.type === "error" && setCriticalResponse(res);
+        await getUserData(dispatch, user.salesmanUid);
       }
       const res = await getOrderData(user.uid);
       setOrders(res);
@@ -265,11 +262,6 @@ const Orders = () => {
             {response?.message}
           </Alert>
         </Snackbar>
-
-        {/* In case seller or salesman is banned or erased or disapproved while still logged in */}
-        <Dialog fullScreen open={Boolean(criticalResponse)} onClose={() => {}}>
-          <UserErrorPage message={criticalResponse.message} />
-        </Dialog>
       </Container>
     </>
   );

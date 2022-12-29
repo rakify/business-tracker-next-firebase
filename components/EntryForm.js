@@ -554,7 +554,7 @@ const EntryForm = () => {
               {/* Name Contact Address */}
               <Stack
                 sx={{
-                  flexDirection: "row",
+                  flexDirection: { xs: "column", sm: "row" },
                   gap: 2,
                   alignItems: "center",
                 }}
@@ -621,12 +621,13 @@ const EntryForm = () => {
               </Stack>
             </Stack>
 
+            {/* Whole Calculations Part start here */}
             <Stack
               direction="row"
               justifyContent="space-between"
               sx={{
-                flexDirection: { xs: "column", md: "row" },
-                alignItems: { sm: "center", md: "flex-start" },
+                flexDirection: { md: "column", lg: "row" },
+                alignItems: { md: "center", lg: "flex-start" },
                 gap: 5,
               }}
             >

@@ -27,7 +27,7 @@ export default function AddSalesman({ handleCloseDialog }) {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    if (user.accountType !== "Seller") {
+    if (user.accountType !== "Seller" || !user.approved) {
       setResponse({
         type: "error",
         message: `You are not allowed to do that.`,

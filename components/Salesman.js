@@ -59,13 +59,12 @@ const Salesman = () => {
   const [response, setResponse] = useState(false);
 
   const handleUpdate = () => {
-    if (user.accountType !== "Seller") {
+    if (user.accountType !== "Seller" || !user.approved) {
       setResponse({
         type: "error",
         message: `You are not allowed to do that.`,
       });
-    }
-    {
+    } else {
       setLoading(true);
       const updatedUser = {
         ...updateUserInfo,

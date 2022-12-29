@@ -228,6 +228,12 @@ export const getUserData = async (dispatch, uid) => {
         message:
           "Dear Salesman, Your account is banned by seller. Please contact seller for information regarding this. Thanks",
       };
+    } else if (docSnap.data().accountType === "Admin") {
+      dispatch(getUserSuccess(docSnap.data()));
+      return {
+        type: "success",
+        message: "Sir.",
+      };
     } else {
       dispatch(getUserFailure());
       return { type: "error", message: "Your account is banned." };

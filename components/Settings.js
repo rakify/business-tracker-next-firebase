@@ -35,7 +35,7 @@ const Settings = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (user.accountType !== "Seller") {
+    if (user.accountType !== "Seller" || !user.approved) {
       setResponse({
         type: "error",
         message: `You are not allowed to do that.`,

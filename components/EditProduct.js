@@ -64,7 +64,7 @@ export default function EditProduct() {
         type: "error",
         message: `Name and Price is required.\n Price must be greater than 0.\n Stock must be greater than or equal to 0.`,
       });
-    } else if (user.accountType !== "Seller") {
+    } else if (user.accountType !== "Seller" || !user.approved) {
       setResponse({
         type: "error",
         message: `You are not allowed to do that.`,
