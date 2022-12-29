@@ -47,8 +47,46 @@ import {
 //Admin
 export const getAllUsers = async () => {
   try {
+    const q = query(
+      collection(db, "users"),
+      where("accountType", "==", "Seller")
+    );
+    const querySnapshot = await getDocs(q);
+    let sellers = [];
+    querySnapshot.forEach((doc) => {
+      sellers.push(doc.data());
+    });
+    return sellers;
   } catch (err) {
-    console.log(err);
+    return { type: "error", message: `Error at getAllUsers ${err}` };
+  }
+};
+export const adminUpdateUser = async (userInfo) => {
+  try {
+    await setDoc(doc(db, "users", userInfo.uid), userInfo);
+    return {
+      type: "success",
+      message: "User updated successfully.",
+    };
+  } catch (err) {
+    return {
+      type: "error",
+      message: err.message,
+    };
+  }
+};
+export const sellerUpdateSalesman = async (userInfo) => {
+  try {
+    await setDoc(doc(db, "users", userInfo.salesmanUid), userInfo);
+    return {
+      type: "success",
+      message: "Salesman updated successfully.",
+    };
+  } catch (err) {
+    return {
+      type: "error",
+      message: err.message,
+    };
   }
 };
 
@@ -58,7 +96,6 @@ export const getProduct = async (id) => {
   try {
     const docRef = doc(db, "products", id);
     const docSnap = await getDoc(docRef);
-    console.log(docSnap.exists());
     if (docSnap.exists()) return docSnap.data();
   } catch (err) {
     console.log(err);
@@ -156,13 +193,48 @@ export const getUserData = async (dispatch, uid) => {
   const docRef = doc(db, "users", uid);
   const docSnap = await getDoc(docRef);
   if (docSnap.exists()) {
-    dispatch(getUserSuccess(docSnap.data()));
-    return { type: "success", message: "Logged In Successfully." };
-  } else {
-    dispatch(getUserFailure());
-    return { type: "error", message: "Your account is banned." };
+    if (docSnap.data().accountType === "Seller" && docSnap.data().approved) {
+      dispatch(getUserSuccess(docSnap.data()));
+      return {
+        type: "success",
+        message: "Valid seller.",
+      };
+    } else if (
+      docSnap.data().accountType === "Seller" &&
+      !docSnap.data().approved
+    ) {
+      dispatch(getUserSuccess(docSnap.data()));
+      return {
+        type: "error",
+        message:
+          "Dear Seller, Your account is still awaiting admin approval. Please contact admin for approval. Thanks",
+      };
+    } else if (
+      docSnap.data().accountType === "Salesman" &&
+      docSnap.data().approved
+    ) {
+      dispatch(getUserSuccess(docSnap.data()));
+      return {
+        type: "success",
+        message: "Valid salesman.",
+      };
+    } else if (
+      docSnap.data().accountType === "Salesman" &&
+      !docSnap.data().approved
+    ) {
+      dispatch(getUserSuccess(docSnap.data()));
+      return {
+        type: "error",
+        message:
+          "Dear Salesman, Your account is banned by seller. Please contact seller for information regarding this. Thanks",
+      };
+    } else {
+      dispatch(getUserFailure());
+      return { type: "error", message: "Your account is banned." };
+    }
   }
 };
+
 //update
 export const updateUser = async (dispatch, uid, userInfo) => {
   dispatch(updateUserStart());
@@ -181,6 +253,7 @@ export const updateUser = async (dispatch, uid, userInfo) => {
     };
   }
 };
+
 //delete
 export const deleteUser = async (uid) => {
   try {
@@ -333,3 +406,5 @@ export const resetPassword = async (email) => {
     return err.code;
   }
 };
+
+//Admin

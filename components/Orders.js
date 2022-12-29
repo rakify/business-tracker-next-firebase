@@ -16,15 +16,17 @@ import {
   DialogActions,
   Box,
 } from "@mui/material";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { DeleteOutlined } from "@mui/icons-material";
 import { DataGrid } from "@mui/x-data-grid";
 import {
   deleteOrder,
   getOrderData,
+  getUserData,
   updateProductQuantity,
 } from "../redux/apiCalls";
 import QuickSearchToolbar from "../utils/QuickSearchToolbar";
+import UserErrorPage from "./UserErrorPage";
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
@@ -36,71 +38,77 @@ const Orders = () => {
   const [loading, setLoading] = useState(false);
   const [deleteOrderInfo, setDeleteOrderInfo] = useState(false);
   const [response, setResponse] = useState(false);
+  const [criticalResponse, setCriticalResponse] = useState(false);
+  const dispatch = useDispatch();
 
   useEffect(() => {
-    setLoading(true);
-    getOrderData(user.uid).then((res) => {
+    const setUp = async () => {
+      setLoading(true);
+      if (user.accountType === "Seller") {
+        const res = await getUserData(dispatch, user.uid);
+        res.type === "error" && setCriticalResponse(res);
+      } else if (user.accountType === "Salesman") {
+        const res = await getUserData(dispatch, user.salesmanUid);
+        res.type === "error" && setCriticalResponse(res);
+      }
+      const res = await getOrderData(user.uid);
       setOrders(res);
       setLoading(false);
-    });
+    };
+    setUp();
   }, []);
 
   const handleDelete = async () => {
-    setLoading(true);
-    //salesman only can delete order prepared by himself
-    if (
-      deleteOrderInfo.preparedBy !== user.name &&
-      user.accountType !== "Seller"
-    ) {
+    if (!user.approved || deleteOrderInfo.preparedBy !== user.username) {
       setResponse({
         type: "error",
-        message: "You do not have permission to delete this order.",
+        message: `You are not allowed to do that.`,
       });
-      setLoading(false);
       setDeleteOrderInfo(false);
-      return;
-    }
-    try {
-      // going to use Promise.all to run all these query parallely at the same time, It makes it super fast this way
-      const promises = [];
-      //delete order from orders docs
-      promises.push(deleteOrder(deleteOrderInfo.id));
-      //handle stock
-      for (const key in deleteOrderInfo.quantity) {
-        const p = updateProductQuantity(
-          key,
-          deleteOrderInfo.quantity[key],
-          "inc"
-        );
-        promises.push(p);
+    } else {
+      setLoading(true);
+      try {
+        // going to use Promise.all to run all these query parallely at the same time, It makes it super fast this way
+        const promises = [];
+        //delete order from orders docs
+        promises.push(deleteOrder(deleteOrderInfo.id));
+        //handle stock
+        for (const key in deleteOrderInfo.quantity) {
+          const p = updateProductQuantity(
+            key,
+            deleteOrderInfo.quantity[key],
+            "inc"
+          );
+          promises.push(p);
+        }
+        for (const key in deleteOrderInfo.quantity2) {
+          const p = updateProductQuantity(
+            key,
+            deleteOrderInfo.quantity2[key],
+            "inc"
+          );
+          promises.push(p);
+        }
+
+        Promise.all(promises);
+
+        setDeleteOrderInfo(false);
+        const newOrders = await getOrderData(user.uid);
+        setOrders(newOrders);
+
+        setResponse({
+          type: "success",
+          message: "Order deleted successfully.",
+        });
+        setLoading(false);
+      } catch (err) {
+        setDeleteOrderInfo(false);
+        setResponse({
+          type: "error",
+          message: err.message,
+        });
+        setLoading(false);
       }
-      for (const key in deleteOrderInfo.quantity2) {
-        const p = updateProductQuantity(
-          key,
-          deleteOrderInfo.quantity2[key],
-          "inc"
-        );
-        promises.push(p);
-      }
-
-      Promise.all(promises);
-
-      setDeleteOrderInfo(false);
-      const newOrders = await getOrderData(user.uid);
-      setOrders(newOrders);
-
-      setResponse({
-        type: "success",
-        message: "Order deleted successfully.",
-      });
-      setLoading(false);
-    } catch (err) {
-      setDeleteOrderInfo(false);
-      setResponse({
-        type: "error",
-        message: err.message,
-      });
-      setLoading(false);
     }
   };
 
@@ -197,11 +205,11 @@ const Orders = () => {
               borderLeftWidth: 1,
               borderColor: "#f1f8ff",
               color: "white",
-              height: "50px !important",
             },
           }}
         >
           <DataGrid
+            headerHeight={30}
             localeText={{
               noRowsLabel: "No order has been placed yet.",
             }}
@@ -257,6 +265,11 @@ const Orders = () => {
             {response?.message}
           </Alert>
         </Snackbar>
+
+        {/* In case seller or salesman is banned or erased or disapproved while still logged in */}
+        <Dialog fullScreen open={Boolean(criticalResponse)} onClose={() => {}}>
+          <UserErrorPage message={criticalResponse.message} />
+        </Dialog>
       </Container>
     </>
   );

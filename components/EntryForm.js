@@ -13,6 +13,7 @@ import {
   Alert,
   Box,
   Tooltip,
+  Dialog,
 } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import Link from "next/link";
@@ -27,6 +28,8 @@ import {
 } from "../redux/apiCalls";
 import QuickSearchToolbar from "../utils/QuickSearchToolbar";
 import { v4 as uuidv4 } from "uuid";
+import Head from "next/head";
+import UserErrorPage from "./UserErrorPage";
 
 const EntryForm = () => {
   const user = useSelector((state) => state.user.currentUser);
@@ -38,12 +41,21 @@ const EntryForm = () => {
     (state) => state.product.productWithoutCommission
   );
   const [response, setResponse] = useState(false);
+  const [criticalResponse, setCriticalResponse] = useState(false);
   const [loading, setLoading] = useState(false);
   const [validation, setValidation] = useState(false);
   const dispatch = useDispatch();
 
   useEffect(() => {
     const setUp = async () => {
+      if (user.accountType === "Seller") {
+        const res = await getUserData(dispatch, user.uid);
+        res.type === "error" && setCriticalResponse(res);
+      } else if (user.accountType === "Salesman") {
+        const res = await getUserData(dispatch, user.salesmanUid);
+        res.type === "error" && setCriticalResponse(res);
+      }
+
       await getProductData(dispatch, user.uid);
       const res = await getOrderData(user.uid);
       setInputs((prev) => ({ ...prev, entryNo: res.length + 1 }));
@@ -244,7 +256,7 @@ const EntryForm = () => {
               justifyContent: "center",
             }}
           >
-            <Tooltip title={`Available Stock: ${params.row.stock}`}>
+            <Tooltip arrow title={`Available Stock: ${params.row.stock}`}>
               <TextField
                 type="number"
                 error={
@@ -320,7 +332,7 @@ const EntryForm = () => {
               justifyContent: "center",
             }}
           >
-            <Tooltip title={`Available Stock: ${params.row.stock}`}>
+            <Tooltip arrow title={`Available Stock: ${params.row.stock}`}>
               <TextField
                 error={
                   params.row.stock < quantity[params.row.id] ||
@@ -373,7 +385,12 @@ const EntryForm = () => {
       (k) => quantity2[k] == 0 && delete quantity2[k] && delete subtotal2[k]
     );
 
-    if (inputs.customerName === "")
+    if (!user.approved) {
+      setResponse({
+        type: "error",
+        message: `You are not allowed to do that.`,
+      });
+    } else if (inputs.customerName === "")
       setResponse({ type: "error", message: "Please enter customer name." });
     else if (inputs.customerContact === "")
       setResponse({
@@ -388,11 +405,12 @@ const EntryForm = () => {
       });
     } else {
       setLoading(true);
-      //checking if user is not banned yet
-      let validUser = "success";
+      //checking if user is not banned so far
+      let validUser = { type: "success" };
       if (user.accountType === "Salesman")
         validUser = await getUserData(dispatch, user.salesmanUid);
-      if (validUser === "success") {
+
+      if (validUser.type === "success") {
         const preparedBy = user.username;
         let preparedById = "";
 
@@ -450,17 +468,28 @@ const EntryForm = () => {
           });
           setLoading(false);
         }
-      } else
+      } else {
         setResponse({
-          type: "warning",
-          message: "Your account is banned.",
+          type: "error",
+          message:
+            "Dear Salesman, Your account is banned by seller. Please contact seller for any more information regarding this. Thanks",
         });
-      setLoading(false);
+        setLoading(false);
+      }
     }
   };
 
   return (
     <>
+      <Head>
+        <title>Cash Memo - Business Tracker</title>
+        <meta
+          name="description"
+          content="Business tracker is a web application for business people to record and to calculate their sells faster"
+        />
+        <link rel="icon" href="/favicon.ico" />
+      </Head>
+
       <>
         {user.accountType !== "Admin" && (
           <Stack>
@@ -1261,7 +1290,7 @@ const EntryForm = () => {
                   variant="contained"
                   disabled={loading || Boolean(validation?.id)}
                 >
-                  Confirm Order
+                  {loading ? "Loading.." : "Confirm Order"}
                 </Button>
               </Stack>
             </Stack>
@@ -1299,6 +1328,11 @@ const EntryForm = () => {
           {validation?.message}
         </Alert>
       </Snackbar>
+
+      {/* In case seller or salesman is banned or erased or disapproved while still logged in */}
+      <Dialog fullScreen open={Boolean(criticalResponse)} onClose={() => {}}>
+        <UserErrorPage message={criticalResponse.message} />
+      </Dialog>
     </>
   );
 };

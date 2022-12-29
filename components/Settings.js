@@ -35,19 +35,26 @@ const Settings = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const updatedUser = {
-      ...user,
-      phoneNumber: inputs.phoneNumber,
-      username: inputs.username,
-      shopName: inputs.shopName,
-      shopAddress: inputs.shopAddress,
-      shopDetails: inputs.shopDetails,
-      shopOfficePn: inputs.shopOfficePn,
-      shopOtherPn: inputs.shopOtherPn,
-    };
-    updateUser(dispatch, user.uid, updatedUser).then((res) => {
-      setResponse(res);
-    });
+    if (user.accountType !== "Seller") {
+      setResponse({
+        type: "error",
+        message: `You are not allowed to do that.`,
+      });
+    } else {
+      const updatedUser = {
+        ...user,
+        phoneNumber: inputs.phoneNumber,
+        username: inputs.username,
+        shopName: inputs.shopName,
+        shopAddress: inputs.shopAddress,
+        shopDetails: inputs.shopDetails,
+        shopOfficePn: inputs.shopOfficePn,
+        shopOtherPn: inputs.shopOtherPn,
+      };
+      updateUser(dispatch, user.uid, updatedUser).then((res) => {
+        setResponse(res);
+      });
+    }
   };
 
   return (

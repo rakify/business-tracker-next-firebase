@@ -1,6 +1,7 @@
 import Head from "next/head";
 import { useSelector } from "react-redux";
 import EntryForm from "../components/EntryForm";
+import Admin from "./admin";
 import Login from "./login";
 
 export default function Home() {
@@ -15,7 +16,13 @@ export default function Home() {
         />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      {user ? <EntryForm /> : <Login />}
+      {user?.accountType === "Admin" ? (
+        <Admin />
+      ) : user?.accountType === "Seller" || user?.accountType === "Salesman" ? (
+        <EntryForm />
+      ) : (
+        <Login />
+      )}
     </>
   );
 }

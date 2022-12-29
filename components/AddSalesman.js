@@ -27,45 +27,53 @@ export default function AddSalesman({ handleCloseDialog }) {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    setLoading(true);
-    try {
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
-      const userInfo = {
-        uid: user.uid, // Seller uid
-        salesmanUid: userCredential.user.uid, // Salesman uid
-        username, // Sellsman name
-        email,
-        phoneNumber,
-        createdAt: userCredential.user.metadata.creationTime,
-        lastLoginAt: userCredential.user.metadata.lastSignInTime,
-        approved: true,
-        accountType: "Salesman",
-        shopName,
-        shopAddress,
-        shopDetails,
-        shopOfficePn,
-        shopOtherPn,
-      };
-      const res = await addSalesmanData(userInfo);
-      handleCloseDialog(res);
-      setLoading(false);
-    } catch (error) {
+    if (user.accountType !== "Seller") {
       setResponse({
         type: "error",
-        message:
-          error.code === "auth/invalid-email"
-            ? "Invalid email."
-            : error.code === "auth/email-already-in-use"
-            ? "This email is already in use."
-            : error.code === "auth/weak-password"
-            ? "Password must contain at least 6 characters."
-            : "Network error.",
+        message: `You are not allowed to do that.`,
       });
-      setLoading(false);
+    }
+    {
+      setLoading(true);
+      try {
+        const userCredential = await createUserWithEmailAndPassword(
+          auth,
+          email,
+          password
+        );
+        const userInfo = {
+          uid: user.uid, // Seller uid
+          salesmanUid: userCredential.user.uid, // Salesman uid
+          username, // Sellsman name
+          email,
+          phoneNumber,
+          createdAt: userCredential.user.metadata.creationTime,
+          lastLoginAt: userCredential.user.metadata.lastSignInTime,
+          approved: true,
+          accountType: "Salesman",
+          shopName,
+          shopAddress,
+          shopDetails,
+          shopOfficePn,
+          shopOtherPn,
+        };
+        const res = await addSalesmanData(userInfo);
+        handleCloseDialog(res);
+        setLoading(false);
+      } catch (error) {
+        setResponse({
+          type: "error",
+          message:
+            error.code === "auth/invalid-email"
+              ? "Invalid email."
+              : error.code === "auth/email-already-in-use"
+              ? "This email is already in use."
+              : error.code === "auth/weak-password"
+              ? "Password must contain at least 6 characters."
+              : "Network error.",
+        });
+        setLoading(false);
+      }
     }
   };
 

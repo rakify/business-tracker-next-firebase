@@ -46,11 +46,18 @@ const Products = () => {
   const [addNew, setAddNew] = useState(false);
 
   const handleDelete = () => {
-    setDeleteProductId(false);
-    deleteProduct(dispatch, deleteProductId).then((res) => {
-      res.type === "success" && getProductData(dispatch, user.uid);
-      setResponse(res);
-    });
+    if (user.accountType !== "Seller") {
+      setResponse({
+        type: "error",
+        message: `You are not allowed to do that.`,
+      });
+    } else {
+      setDeleteProductId(false);
+      deleteProduct(dispatch, deleteProductId).then((res) => {
+        res.type === "success" && getProductData(dispatch, user.uid);
+        setResponse(res);
+      });
+    }
   };
 
   // when add new product successful AddProduct will return to this with response
@@ -173,11 +180,11 @@ const Products = () => {
               borderLeftWidth: 1,
               borderColor: "#f1f8ff",
               color: "white",
-              height: "50px !important",
             },
           }}
         >
           <DataGrid
+            headerHeight={30}
             localeText={{
               noRowsLabel: "No product has been added yet.",
             }}

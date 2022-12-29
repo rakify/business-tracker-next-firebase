@@ -1,96 +1,78 @@
-import { forwardRef, useEffect, useState, React } from "react";
 import {
-  Stack,
-  Typography,
+  BlockOutlined,
+  CheckCircle,
+  DeleteOutlined,
+} from "@mui/icons-material";
+import {
+  Alert,
+  Box,
   Button,
   Container,
   Dialog,
-  DialogTitle,
-  DialogContent,
-  IconButton,
-  Tooltip,
-  Snackbar,
-  Alert,
-  Slide,
-  DialogContentText,
   DialogActions,
-  Box,
-  Collapse,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  IconButton,
+  Slide,
+  Snackbar,
+  Stack,
+  Tooltip,
+  Typography,
 } from "@mui/material";
-import { useSelector } from "react-redux";
-import {
-  BlockOutlined,
-  BlockRounded,
-  CheckCircle,
-  CloseRounded,
-} from "@mui/icons-material";
 import { DataGrid } from "@mui/x-data-grid";
+import React, { forwardRef, useEffect, useState } from "react";
 import {
   adminUpdateUser,
   deleteUser,
-  getSalesmanData,
-  sellerUpdateSalesman,
-} from "../redux/apiCalls";
-import QuickSearchToolbar from "../utils/QuickSearchToolbar";
-import AddSalesman from "./AddSalesman";
+  getAllUsers,
+} from "../../../redux/apiCalls";
+import QuickSearchToolbar from "../../../utils/QuickSearchToolbar";
 
-const CollapseTransition = forwardRef(function Transition(props, ref) {
-  return <Collapse ref={ref} {...props} />;
-});
 const SlideTransition = forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
-const Salesman = () => {
-  const user = useSelector((state) => state.user.currentUser);
-  const [salesman, setSalesman] = useState([]);
-  const [updateUserInfo, setUpdateUserInfo] = useState(false);
+const SellerList = () => {
+  const [sellers, setSellers] = useState([]);
+  const [deleteUserUid, setDeleteUserUid] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [addNew, setAddNew] = useState(false);
-
+  const [response, setResponse] = useState(false);
+  const [updateUserInfo, setUpdateUserInfo] = useState(false);
   useEffect(() => {
     setLoading(true);
-    getSalesmanData(user.uid).then((res) => {
-      res.status === 200 && setSalesman(res.data);
+    getAllUsers().then((res) => {
+      setSellers(res);
       setLoading(false);
     });
   }, []);
 
-  const [response, setResponse] = useState(false);
-
-  const handleUpdate = () => {
-    if (user.accountType !== "Seller") {
-      setResponse({
-        type: "error",
-        message: `You are not allowed to do that.`,
+  const handleDelete = () => {
+    setLoading(true);
+    deleteUser(deleteUserUid).then((res) => {
+      setResponse(res);
+      setDeleteUserUid(false);
+      getAllUsers.then((res) => {
+        setSellers(res);
+        setLoading(false);
       });
-    }
-    {
-      setLoading(true);
-      const updatedUser = {
-        ...updateUserInfo,
-        approved: !updateUserInfo.approved,
-      };
-      sellerUpdateSalesman(updatedUser).then((res) => {
-        setResponse(res);
-        getSalesmanData(user.uid).then((res) => {
-          if (res.status === 200) {
-            setSalesman(res.data);
-            setLoading(false);
-            setUpdateUserInfo(false);
-          }
-        });
-      });
-    }
+    });
   };
 
-  // when add new salesman successful AddSalesman will return to this with response
-  const handleCloseDialog = (res) => {
-    setAddNew(false);
-    getSalesmanData(user.uid).then((res) => {
-      res.status === 200 && setSalesman(res.data);
+  const handleUpdate = () => {
+    setLoading(true);
+    const updatedUser = {
+      ...updateUserInfo,
+      approved: !updateUserInfo.approved,
+    };
+    adminUpdateUser(updatedUser).then((res) => {
+      setResponse(res);
+      getAllUsers().then((res) => {
+        setSellers(res);
+        setLoading(false);
+        setUpdateUserInfo(false);
+      });
     });
-    setResponse(res);
   };
 
   const columns = [
@@ -102,31 +84,48 @@ const Salesman = () => {
       editable: false,
     },
     {
-      field: "username",
-      headerName: "Userame",
+      field: "lastLoginAt",
+      headerName: "Last Login",
       headerClassName: "super-app-theme--header",
-      width: 150,
+      width: 250,
+      editable: false,
+    },
+    {
+      field: "approved",
+      headerClassName: "super-app-theme--header",
+      headerName: "Status",
+      width: 100,
+      editable: false,
+      renderCell: (params) => {
+        return params.row.approved ? "Approved" : "Awaiting";
+      },
+    },
+    {
+      field: "uid",
+      headerName: "Uid",
+      headerClassName: "super-app-theme--header",
+      width: 250,
       editable: false,
     },
     {
       field: "email",
       headerName: "Email",
       headerClassName: "super-app-theme--header",
-      width: 200,
+      width: 150,
       editable: false,
     },
     {
       field: "phoneNumber",
       headerName: "Phone",
       headerClassName: "super-app-theme--header",
-      width: 200,
+      width: 150,
       editable: false,
     },
     {
-      field: "lastLoginAt",
-      headerName: "Last Login",
+      field: "shopName",
+      headerName: "Shop Name",
       headerClassName: "super-app-theme--header",
-      width: 250,
+      width: 150,
       editable: false,
     },
     {
@@ -137,12 +136,20 @@ const Salesman = () => {
       renderCell: (params) => {
         return (
           <Stack direction="row" alignItems="center" sx={{ gap: 2 }}>
+            <IconButton
+              aria-label="delete"
+              onClick={() => setDeleteUserUid(params.row.uid)}
+            >
+              <Tooltip arrow title="Erase User">
+                <DeleteOutlined />
+              </Tooltip>
+            </IconButton>
             {params.row.approved ? (
               <IconButton
                 aria-label="disapprove"
                 onClick={() => setUpdateUserInfo(params.row)}
               >
-                <Tooltip arrow title="Ban Salesman">
+                <Tooltip arrow title="Ban User">
                   <BlockOutlined />
                 </Tooltip>
               </IconButton>
@@ -151,7 +158,7 @@ const Salesman = () => {
                 aria-label="approve"
                 onClick={() => setUpdateUserInfo(params.row)}
               >
-                <Tooltip arrow title="Approve Salesman">
+                <Tooltip arrow title="Approve User">
                   <CheckCircle />
                 </Tooltip>
               </IconButton>
@@ -175,14 +182,7 @@ const Salesman = () => {
           alignItems="center"
           sx={{ p: 1, backgroundColor: "#8af", color: "white" }}
         >
-          <Typography>Your Salesmen</Typography>
-          <Button
-            onClick={() => setAddNew(true)}
-            variant="outlined"
-            sx={{ color: "white" }}
-          >
-            Appoint
-          </Button>
+          <Typography>All Registered Sellers</Typography>
         </Stack>
 
         <Box
@@ -204,8 +204,8 @@ const Salesman = () => {
             }}
             loading={loading}
             components={{ Toolbar: QuickSearchToolbar }}
-            rows={salesman}
-            getRowId={(row) => row.salesmanUid}
+            rows={sellers}
+            getRowId={(row) => row.uid}
             columns={columns}
             pageSize={5}
             rowsPerPageOptions={[5]}
@@ -219,44 +219,7 @@ const Salesman = () => {
           />
         </Box>
 
-        <Typography>
-          <p style={{ color: "red", textAlign: "center" }}>Reminder: </p>{" "}
-          <p style={{ textAlign: "center" }}>
-            All a salesman can do is reset his/her password with the provided
-            email associated with salesman account, place order and delete his
-            order.
-          </p>
-        </Typography>
-
-        {/* Add New Salesman Dialog */}
-        <Dialog
-          sx={{ overflowX: "scroll" }}
-          open={Boolean(addNew)}
-          TransitionComponent={CollapseTransition}
-          onClose={() => setAddNew(false)}
-          aria-describedby="Add New Saleman"
-        >
-          <DialogTitle>
-            <Stack
-              direction="row"
-              justifyContent="space-between"
-              alignItems="center"
-              sx={{ p: 1, backgroundColor: "#83cee0", color: "white" }}
-            >
-              <Typography>Appoint Salesman</Typography>
-              <Button size="small" onClick={() => setAddNew(false)}>
-                <Tooltip title="Go back">
-                  <CloseRounded />
-                </Tooltip>
-              </Button>
-            </Stack>
-          </DialogTitle>
-          <DialogContent>
-            <AddSalesman handleCloseDialog={handleCloseDialog} />
-          </DialogContent>
-        </Dialog>
-
-        {/* Confirm Delete Dialog */}
+        {/* Confirm Update Dialog */}
         <Dialog
           open={Boolean(updateUserInfo)}
           TransitionComponent={SlideTransition}
@@ -264,18 +227,41 @@ const Salesman = () => {
           onClose={() => setUpdateUserInfo(false)}
           aria-describedby="alert-dialog-slide-description"
         >
-          <DialogTitle>{"Confirm Delete"}</DialogTitle>
+          <DialogTitle>{"Confirm Update"}</DialogTitle>
           <DialogContent>
             <DialogContentText id="alert-dialog-slide-description">
-              If you proceed now salesman with ID {updateUserInfo.uid} will be
-              banned temporarily. You can reverse this change anytime.
+              If you proceed now seller with UID {updateUserInfo.uid} will be{" "}
+              {updateUserInfo.approved ? "Banned" : "Approved"}.
             </DialogContentText>
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setUpdateUserInfo(false)}>Cancel</Button>
-            <Button disable={loading} onClick={() => handleUpdate()}>
+            <Button disabled={loading} onClick={() => setUpdateUserInfo(false)}>
+              Cancel
+            </Button>
+            <Button disabled={loading} onClick={() => handleUpdate()}>
               {loading ? "Loading.." : "Proceed"}
             </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Confirm Delete Dialog */}
+        <Dialog
+          open={Boolean(deleteUserUid)}
+          TransitionComponent={SlideTransition}
+          keepMounted
+          onClose={() => setDeleteUserUid(false)}
+          aria-describedby="alert-dialog-slide-description"
+        >
+          <DialogTitle>{"Confirm Delete"}</DialogTitle>
+          <DialogContent>
+            <DialogContentText id="alert-dialog-slide-description">
+              If you proceed now seller with UID {deleteUserUid} will be erased.
+              This action is irreversible.
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setDeleteUserUid(false)}>Cancel</Button>
+            <Button onClick={() => handleDelete(deleteUserUid)}>Proceed</Button>
           </DialogActions>
         </Dialog>
 
@@ -298,4 +284,4 @@ const Salesman = () => {
   );
 };
 
-export default Salesman;
+export default SellerList;
