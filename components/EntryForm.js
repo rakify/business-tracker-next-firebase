@@ -661,7 +661,7 @@ const EntryForm = () => {
                         color: "white",
                         backgroundColor: "#2263a5",
                         width: 420,
-                        fontFamily: "Helvetica Neue",
+                        fontFamily: "cursive",
                       }}
                     >
                       Products That Accept Commission
@@ -898,7 +898,7 @@ const EntryForm = () => {
                         color: "white",
                         backgroundColor: "#2263a5",
                         width: 420,
-                        fontFamily: "Helvetica Neue",
+                        fontFamily: "cursive",
                       }}
                     >
                       Products That Don't Accept Commission
