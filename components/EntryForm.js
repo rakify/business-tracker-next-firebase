@@ -643,7 +643,7 @@ const EntryForm = () => {
               justifyContent="space-between"
               sx={{
                 flexDirection: { xs: "column", md: "row" },
-                alignItems: { md: "center", lg: "flex-start" },
+                alignItems: { xs: "center", md: "flex-start" },
                 gap: 5,
               }}
             >

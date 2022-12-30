@@ -165,9 +165,9 @@ const OrderDetails = ({ handleClose, order }) => {
           {/* Name Contact Address */}
           <Stack
             sx={{
-              flexDirection: { xs: "column", sm: "row" },
+              flexDirection: { xs: "column", md: "row" },
               justifyContent: "space-between",
-              alignItems: "center",
+              alignItems: { xs: "flex-start", md: "center" },
             }}
           >
             <Typography sx={{ fontWeight: "bold" }}>
@@ -184,11 +184,10 @@ const OrderDetails = ({ handleClose, order }) => {
 
         {/* Whole Calculations Part start here */}
         <Stack
-          direction="row"
           justifyContent="space-between"
           sx={{
-            flexDirection: { md: "column", lg: "row" },
-            alignItems: { md: "center", lg: "flex-start" },
+            flexDirection: { xs: "column", md: "row" },
+            alignItems: { xs: "center", md: "flex-start" },
             gap: 5,
           }}
         >
