@@ -571,7 +571,7 @@ const EntryForm = () => {
               {/* Name Contact Address */}
               <Stack
                 sx={{
-                  flexDirection: { xs: "column", sm: "row" },
+                  flexDirection: { xs: "column", md: "row" },
                   gap: 2,
                   alignItems: "center",
                 }}
@@ -640,10 +640,9 @@ const EntryForm = () => {
 
             {/* Whole Calculations Part start here */}
             <Stack
-              direction="row"
               justifyContent="space-between"
               sx={{
-                flexDirection: { md: "column", lg: "row" },
+                flexDirection: { xs: "column", md: "row" },
                 alignItems: { md: "center", lg: "flex-start" },
                 gap: 5,
               }}
@@ -661,6 +660,7 @@ const EntryForm = () => {
                         fontSize: 10,
                         color: "white",
                         backgroundColor: "#2263a5",
+                        width: 420,
                       }}
                     >
                       Products That Accept Commission
@@ -896,6 +896,7 @@ const EntryForm = () => {
                         fontSize: 10,
                         color: "white",
                         backgroundColor: "#2263a5",
+                        width: 420,
                       }}
                     >
                       Products That Don't Accept Commission

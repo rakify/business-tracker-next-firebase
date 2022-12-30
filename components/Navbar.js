@@ -218,7 +218,7 @@ const Navbar = () => {
             <ViewList /> Products
           </Link>
         </MenuItem>
-        {user.accountType === "Seller" && (
+        {user?.accountType === "Seller" && (
           <MenuItem>
             <Link
               href="/salesman"
