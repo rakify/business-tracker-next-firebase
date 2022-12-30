@@ -164,7 +164,7 @@ const Salesman = () => {
   return (
     <>
       <Container
-        maxWidth="xl"
+        maxWidth="md"
         sx={{ backgroundColor: "whitesmoke", mt: 1 }}
         disableGutters
       >
