@@ -94,7 +94,8 @@ const Navbar = () => {
               <Store fontSize="large" />
             </Typography>
           </Link>
-          {user?.accountType === "Seller" ? (
+          {user?.accountType === "Seller" ||
+          user?.accountType === "Salesman" ? (
             <StyledBadge
               overlap="circular"
               anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
@@ -179,19 +180,21 @@ const Navbar = () => {
         anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
         sx={{ pointer: "grab" }}
       >
-        <MenuItem>
-          <Link
-            href="/profile/"
-            style={{
-              textDecoration: "none",
-              display: "flex",
-              alignItems: "center",
-              gap: 1,
-            }}
-          >
-            <Person /> Profile
-          </Link>
-        </MenuItem>
+        {user?.accountType === "Seller" && (
+          <MenuItem>
+            <Link
+              href="/profile/"
+              style={{
+                textDecoration: "none",
+                display: "flex",
+                alignItems: "center",
+                gap: 1,
+              }}
+            >
+              <Person /> Profile
+            </Link>
+          </MenuItem>
+        )}
         <MenuItem>
           <Link
             href="/orders/"
