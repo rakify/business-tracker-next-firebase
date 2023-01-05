@@ -208,19 +208,21 @@ const Navbar = () => {
             <ReceiptLong /> Orders
           </Link>
         </MenuItem>
-        <MenuItem>
-          <Link
-            href="/products"
-            style={{
-              textDecoration: "none",
-              display: "flex",
-              alignItems: "center",
-              gap: 1,
-            }}
-          >
-            <ViewList /> Products
-          </Link>
-        </MenuItem>
+        {user?.accountType === "Seller" && (
+          <MenuItem>
+            <Link
+              href="/products"
+              style={{
+                textDecoration: "none",
+                display: "flex",
+                alignItems: "center",
+                gap: 1,
+              }}
+            >
+              <ViewList /> Products
+            </Link>
+          </MenuItem>
+        )}
         {user?.accountType === "Seller" && (
           <MenuItem>
             <Link
