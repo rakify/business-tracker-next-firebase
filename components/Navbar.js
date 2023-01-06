@@ -86,13 +86,13 @@ const Navbar = () => {
           <Link href="/">
             <Typography
               variant="h6"
-              sx={{ display: { xs: "none", sm: "block" } }}
+              sx={{ display: { xs: "none", md: "block" } }}
             >
               Business Tracker
             </Typography>
             <Typography
               variant="h6"
-              sx={{ display: { xs: "block", sm: "none" } }}
+              sx={{ display: { xs: "block", md: "none" } }}
             >
               <Store fontSize="large" />
             </Typography>
@@ -103,7 +103,7 @@ const Navbar = () => {
               <Stack
                 direction="row"
                 gap={1}
-                sx={{ display: { xs: "none", sm: "flex" } }}
+                sx={{ display: { xs: "none", md: "flex" } }}
               >
                 <Button
                   size="small"
@@ -216,7 +216,7 @@ const Navbar = () => {
                 </Button>
               </Stack>
               <Stack
-                sx={{ display: { xs: "none", sm: "flex" } }}
+                sx={{ display: { xs: "none", md: "flex" } }}
                 direction="row"
                 alignItems="center"
                 gap={1}
@@ -244,7 +244,7 @@ const Navbar = () => {
                 sx={{
                   width: 30,
                   height: 30,
-                  display: { xs: "block", sm: "none" },
+                  display: { xs: "block", md: "none" },
                 }}
               >
                 <Avatar
