@@ -27,6 +27,7 @@ import {
   ViewList,
   PersonAddAlt1,
 } from "@mui/icons-material";
+import { useRouter } from "next/router";
 
 const StyledBadge = styled(Badge)(({ theme }) => ({
   "& .MuiBadge-badge": {
@@ -59,6 +60,7 @@ const StyledBadge = styled(Badge)(({ theme }) => ({
 
 const Navbar = () => {
   const dispatch = useDispatch();
+  const router = useRouter();
   const user = useSelector((state) => state.user.currentUser);
   const [anchorEl, setAnchorEl] = useState(null);
   const openMenu = Boolean(anchorEl);
@@ -83,42 +85,160 @@ const Navbar = () => {
           <Link href="/">
             <Typography
               variant="h6"
-              sx={{ display: { xs: "none", md: "block" } }}
+              sx={{ display: { xs: "none", sm: "block" } }}
             >
               Business Tracker
             </Typography>
             <Typography
               variant="h6"
-              sx={{ display: { xs: "block", md: "none" } }}
+              sx={{ display: { xs: "block", sm: "none" } }}
             >
               <Store fontSize="large" />
             </Typography>
           </Link>
           {user?.accountType === "Seller" ||
           user?.accountType === "Salesman" ? (
-            <StyledBadge
-              overlap="circular"
-              anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-              variant="dot"
-              sx={{ width: 30, height: 30 }}
-            >
-              <Avatar
-                alt="menu"
+            <>
+              <Stack
+                direction="row"
+                gap={1}
+                sx={{ display: { xs: "none", sm: "flex" } }}
+              >
+                <Button
+                  size="small"
+                  variant="outlined"
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    color: "white",
+                    border:
+                      router.route.slice(1) === "profile" &&
+                      "4px solid currentColor",
+                  }}
+                >
+                  <Link
+                    href="/profile"
+                    style={{
+                      textDecoration: "none",
+                    }}
+                  >
+                    Profile
+                  </Link>
+                </Button>
+                <Button
+                  size="small"
+                  variant="outlined"
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    color: "white",
+                    border:
+                      router.route.slice(1) === "products" &&
+                      "4px solid currentColor",
+                  }}
+                >
+                  <Link
+                    href="/products"
+                    style={{
+                      textDecoration: "none",
+                    }}
+                  >
+                    Products
+                  </Link>
+                </Button>
+                <Button
+                  size="small"
+                  variant="outlined"
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    color: "white",
+                    border:
+                      router.route.slice(1) === "orders" &&
+                      "4px solid currentColor",
+                  }}
+                >
+                  <Link
+                    href="/orders"
+                    style={{
+                      textDecoration: "none",
+                    }}
+                  >
+                    Orders
+                  </Link>
+                </Button>
+                <Button
+                  size="small"
+                  variant="outlined"
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    color: "white",
+                    border:
+                      router.route.slice(1) === "salesman" &&
+                      "4px solid currentColor",
+                  }}
+                >
+                  <Link
+                    href="/salesman"
+                    style={{
+                      textDecoration: "none",
+                    }}
+                  >
+                    Salesman
+                  </Link>
+                </Button>
+              </Stack>
+              <Stack
+                sx={{ display: { xs: "none", sm: "flex" } }}
+                direction="row"
+                alignItems="center"
+                gap={1}
+              >
+                <Typography>
+                  Welcome <b>{user?.accountType}</b>
+                </Typography>
+                <Button
+                  size="small"
+                  variant="contained"
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    color: "white",
+                  }}
+                  onClick={() => logout(dispatch)}
+                >
+                  Logout
+                </Button>
+              </Stack>
+              <StyledBadge
+                overlap="circular"
+                anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+                variant="dot"
                 sx={{
                   width: 30,
                   height: 30,
-                  cursor: "pointer",
-                  backgroundColor: "white",
+                  display: { xs: "block", sm: "none" },
                 }}
-                aria-controls={open ? "basic-menu" : undefined}
-                aria-haspopup="true"
-                aria-expanded={open ? "true" : undefined}
-                onClick={handleClick}
-                onMouseOver={handleClick}
               >
-                <MenuOutlined color="primary" />
-              </Avatar>
-            </StyledBadge>
+                <Avatar
+                  alt="menu"
+                  sx={{
+                    width: 30,
+                    height: 30,
+                    cursor: "pointer",
+                    backgroundColor: "white",
+                  }}
+                  aria-controls={open ? "basic-menu" : undefined}
+                  aria-haspopup="true"
+                  aria-expanded={open ? "true" : undefined}
+                  onClick={handleClick}
+                  onMouseOver={handleClick}
+                >
+                  <MenuOutlined color="primary" />
+                </Avatar>
+              </StyledBadge>
+            </>
           ) : user?.accountType === "Admin" ? (
             <Stack direction="row" alignItems="center" gap={2}>
               <Button size="small" onClick={() => logout(dispatch)}>
@@ -181,19 +301,47 @@ const Navbar = () => {
         sx={{ pointer: "grab" }}
       >
         {user?.accountType === "Seller" && (
-          <MenuItem>
-            <Link
-              href="/profile/"
-              style={{
-                textDecoration: "none",
-                display: "flex",
-                alignItems: "center",
-                gap: 1,
-              }}
-            >
-              <Person /> Profile
-            </Link>
-          </MenuItem>
+          <>
+            <MenuItem>
+              <Link
+                href="/profile/"
+                style={{
+                  textDecoration: "none",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1,
+                }}
+              >
+                <Person /> Profile
+              </Link>
+            </MenuItem>
+            <MenuItem>
+              <Link
+                href="/products"
+                style={{
+                  textDecoration: "none",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1,
+                }}
+              >
+                <ViewList /> Products
+              </Link>
+            </MenuItem>
+            <MenuItem>
+              <Link
+                href="/salesman"
+                style={{
+                  textDecoration: "none",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1,
+                }}
+              >
+                <PersonAddAlt1 /> Salesmen
+              </Link>
+            </MenuItem>
+          </>
         )}
         <MenuItem>
           <Link
@@ -208,36 +356,7 @@ const Navbar = () => {
             <ReceiptLong /> Orders
           </Link>
         </MenuItem>
-        {user?.accountType === "Seller" && (
-          <MenuItem>
-            <Link
-              href="/products"
-              style={{
-                textDecoration: "none",
-                display: "flex",
-                alignItems: "center",
-                gap: 1,
-              }}
-            >
-              <ViewList /> Products
-            </Link>
-          </MenuItem>
-        )}
-        {user?.accountType === "Seller" && (
-          <MenuItem>
-            <Link
-              href="/salesman"
-              style={{
-                textDecoration: "none",
-                display: "flex",
-                alignItems: "center",
-                gap: 1,
-              }}
-            >
-              <PersonAddAlt1 /> Salesmen
-            </Link>
-          </MenuItem>
-        )}
+
         <Divider variant="middle" />
         <Button
           size="small"
