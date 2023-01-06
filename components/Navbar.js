@@ -26,6 +26,7 @@ import {
   Person,
   ViewList,
   PersonAddAlt1,
+  ManageHistory,
 } from "@mui/icons-material";
 import { useRouter } from "next/router";
 
@@ -104,6 +105,26 @@ const Navbar = () => {
                 gap={1}
                 sx={{ display: { xs: "none", sm: "flex" } }}
               >
+                <Button
+                  size="small"
+                  variant="outlined"
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    color: "white",
+                    border:
+                      router.route.slice(1) === "" && "4px solid currentColor",
+                  }}
+                >
+                  <Link
+                    href="/"
+                    style={{
+                      textDecoration: "none",
+                    }}
+                  >
+                    Cash Memo
+                  </Link>
+                </Button>
                 {user?.accountType === "Seller" && (
                   <>
                     <Button
@@ -305,6 +326,20 @@ const Navbar = () => {
         anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
         sx={{ pointer: "grab" }}
       >
+        <MenuItem>
+          <Link
+            href="/"
+            style={{
+              textDecoration: "none",
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
+            }}
+          >
+            <ManageHistory /> Cash Memo
+          </Link>
+        </MenuItem>
+
         {user?.accountType === "Seller" && (
           <>
             <MenuItem>
