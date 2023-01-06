@@ -80,7 +80,7 @@ const SellerList = () => {
       field: "createdAt",
       headerName: "Created At",
       headerClassName: "super-app-theme--header",
-      width: 250,
+      width: 200,
       editable: false,
       renderCell: (params) => {
         return new Date(params.row.createdAt.seconds * 1000).toLocaleString(

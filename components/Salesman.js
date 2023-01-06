@@ -99,7 +99,7 @@ const Salesman = () => {
       field: "createdAt",
       headerName: "Created At",
       headerClassName: "super-app-theme--header",
-      width: 250,
+      width: 200,
       editable: false,
       renderCell: (params) => {
         return new Date(params.row.createdAt.seconds * 1000).toLocaleString(
@@ -132,7 +132,7 @@ const Salesman = () => {
       field: "action",
       headerName: "Action",
       headerClassName: "super-app-theme--header",
-      width: 150,
+      width: 145,
       renderCell: (params) => {
         return (
           <Stack direction="row" alignItems="center" sx={{ gap: 2 }}>
