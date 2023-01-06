@@ -104,48 +104,74 @@ const Navbar = () => {
                 gap={1}
                 sx={{ display: { xs: "none", sm: "flex" } }}
               >
-                <Button
-                  size="small"
-                  variant="outlined"
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    color: "white",
-                    border:
-                      router.route.slice(1) === "profile" &&
-                      "4px solid currentColor",
-                  }}
-                >
-                  <Link
-                    href="/profile"
-                    style={{
-                      textDecoration: "none",
-                    }}
-                  >
-                    Profile
-                  </Link>
-                </Button>
-                <Button
-                  size="small"
-                  variant="outlined"
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    color: "white",
-                    border:
-                      router.route.slice(1) === "products" &&
-                      "4px solid currentColor",
-                  }}
-                >
-                  <Link
-                    href="/products"
-                    style={{
-                      textDecoration: "none",
-                    }}
-                  >
-                    Products
-                  </Link>
-                </Button>
+                {user?.accountType === "Seller" && (
+                  <>
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        color: "white",
+                        border:
+                          router.route.slice(1) === "profile" &&
+                          "4px solid currentColor",
+                      }}
+                    >
+                      <Link
+                        href="/profile"
+                        style={{
+                          textDecoration: "none",
+                        }}
+                      >
+                        Profile
+                      </Link>
+                    </Button>
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        color: "white",
+                        border:
+                          router.route.slice(1) === "products" &&
+                          "4px solid currentColor",
+                      }}
+                    >
+                      <Link
+                        href="/products"
+                        style={{
+                          textDecoration: "none",
+                        }}
+                      >
+                        Products
+                      </Link>
+                    </Button>
+
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        color: "white",
+                        border:
+                          router.route.slice(1) === "salesman" &&
+                          "4px solid currentColor",
+                      }}
+                    >
+                      <Link
+                        href="/salesman"
+                        style={{
+                          textDecoration: "none",
+                        }}
+                      >
+                        Salesman
+                      </Link>
+                    </Button>
+                  </>
+                )}
                 <Button
                   size="small"
                   variant="outlined"
@@ -165,27 +191,6 @@ const Navbar = () => {
                     }}
                   >
                     Orders
-                  </Link>
-                </Button>
-                <Button
-                  size="small"
-                  variant="outlined"
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    color: "white",
-                    border:
-                      router.route.slice(1) === "salesman" &&
-                      "4px solid currentColor",
-                  }}
-                >
-                  <Link
-                    href="/salesman"
-                    style={{
-                      textDecoration: "none",
-                    }}
-                  >
-                    Salesman
                   </Link>
                 </Button>
               </Stack>
